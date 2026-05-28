@@ -3,2102 +3,1911 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Défi des Quatre Maisons - Maths</title>
-    
-    <!-- Favicon -->
+    <title>Systèmes Techniques — Quiz Maths Bac Pro</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="alternate icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
-    
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a1a;
-            color: #e0e0e0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            width: 100%;
-            background: #1a1a2e;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(123, 47, 247, 0.3);
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #a0aec0;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-
-        .welcome-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-top: 30px;
-        }
-
-        .houses-section {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .houses-section h3 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #e0e0e0;
-            font-size: 1.2em;
-        }
-
-        .house-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .house-card {
-            background: #1a1a2e;
-            border-radius: 15px;
-            padding: 30px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            color: white;
-        }
-
-        .house-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .house-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .house-card.phoenix { 
-            border-color: #ff6b6b;
-            box-shadow: 0 0 10px #ff6b6b;
-        }
-        .house-card.phoenix:hover { 
-            box-shadow: 0 0 20px #ff6b6b, 0 0 40px #ff6b6b, 0 0 60px #ff6b6b;
-        }
-        
-        .house-card.axiome { 
-            border-color: #40e0d0;
-            box-shadow: 0 0 10px #40e0d0;
-        }
-        .house-card.axiome:hover { 
-            box-shadow: 0 0 20px #40e0d0, 0 0 40px #40e0d0, 0 0 60px #40e0d0;
-        }
-        
-        .house-card.nebula { 
-            border-color: #8a2be2;
-            box-shadow: 0 0 10px #8a2be2;
-        }
-        .house-card.nebula:hover { 
-            box-shadow: 0 0 20px #8a2be2, 0 0 40px #8a2be2, 0 0 60px #8a2be2;
-        }
-        
-        .house-card.zenith { 
-            border-color: #ffa500;
-            box-shadow: 0 0 10px #ffa500;
-        }
-        .house-card.zenith:hover { 
-            box-shadow: 0 0 20px #ffa500, 0 0 40px #ffa500, 0 0 60px #ffa500;
-        }
-
-        .house-icon {
-            font-size: 2.5em;
-            margin-bottom: 8px;
-        }
-
-        .house-name {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: white;
-        }
-
-        .house-motto {
-            font-size: 0.75em;
-            margin: 5px 0;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .house-score {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.85em;
-            margin-top: 5px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #2d3748;
-            background: #1a1a2e;
-            color: #e0e0e0;
-            font-size: 1.1em;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #00d4ff;
-            background: #252538;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-        }
-
-        input[type="text"]::placeholder {
-            color: #718096;
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: none;
-            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
-            color: white;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #252538;
-            border-radius: 10px;
-            border: 1px solid #3a3a52;
-        }
-
-        .question-number {
-            font-size: 1.2em;
-            color: #00d4ff;
-            font-weight: 600;
-        }
-
-        .timer {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #ff6b6b;
-        }
-
-        .combo-display {
-            text-align: center;
-            padding: 10px;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
-            border-radius: 10px;
-            font-weight: bold;
-            animation: pulse 1s infinite;
-            color: white;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .question-text {
-            font-size: 1.3em;
-            margin-bottom: 25px;
-            line-height: 1.6;
-            background: #252538;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #00d4ff;
-            color: #e0e0e0;
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .option {
-            padding: 15px 20px;
-            background: #252538;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid #3a3a52;
-            color: #e0e0e0;
-        }
-
-        .option:hover {
-            background: #2d2d42;
-            border-color: #00d4ff;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-        }
-
-        .option.selected {
-            background: rgba(0, 212, 255, 0.2);
-            border-color: #00d4ff;
-            font-weight: 600;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
-        }
-
-        input[type="number"] {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #3a3a52;
-            background: #252538;
-            color: #e0e0e0;
-            font-size: 1.3em;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        input[type="number"]:focus {
-            outline: none;
-            border-color: #00d4ff;
-            background: #2d2d42;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-        }
-
-        .results-container {
-            margin-top: 30px;
-        }
-
-        .result-item {
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            background: #252538;
-            border-left: 4px solid;
-        }
-
-        .result-item.correct {
-            border-left-color: #48bb78;
-            background: rgba(72, 187, 120, 0.15);
-        }
-
-        .result-item.incorrect {
-            border-left-color: #f56565;
-            background: rgba(245, 101, 101, 0.15);
-        }
-
-        .result-question {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #e0e0e0;
-        }
-
-        .result-answer {
-            color: #a0aec0;
-            font-size: 0.95em;
-        }
-
-        .final-score {
-            text-align: center;
-            padding: 30px;
-            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
-            color: white;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-
-        .leaderboard {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .leaderboard-item {
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .leaderboard-item.phoenix {
-            background: linear-gradient(135deg, #ff3366, #ff6b6b);
-        }
-
-        .leaderboard-item.axiome {
-            background: linear-gradient(135deg, #00d4ff, #40e0d0);
-        }
-
-        .leaderboard-item.nebula {
-            background: linear-gradient(135deg, #7b2ff7, #8a2be2);
-        }
-
-        .leaderboard-item.zenith {
-            background: linear-gradient(135deg, #ffa500, #ff8c00);
-            color: white;
-        }
-
-        .leaderboard-name {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .leaderboard-score {
-            font-size: 2em;
-            font-weight: bold;
-        }
-
-        .top-scores {
-            background: #252538;
-            border-radius: 15px;
-            padding: 25px;
-            height: fit-content;
-            border: 1px solid #3a3a52;
-        }
-
-        .top-scores h3 {
-            color: #e0e0e0;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 1.2em;
-        }
-
-        .top-score-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            background: #1a1a2e;
-            border-radius: 8px;
-            border-left: 4px solid;
-            transition: all 0.3s ease;
-        }
-
-        .top-score-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 2px 8px rgba(0, 212, 255, 0.2);
-        }
-
-        .top-score-item.rank-1 { border-left-color: #ffa500; }
-        .top-score-item.rank-2 { border-left-color: #a0a0a0; }
-        .top-score-item.rank-3 { border-left-color: #cd7f32; }
-
-        .top-score-rank {
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #718096;
-            min-width: 30px;
-        }
-
-        .top-score-rank.rank-1 { color: #ffa500; }
-        .top-score-rank.rank-2 { color: #a0a0a0; }
-        .top-score-rank.rank-3 { color: #cd7f32; }
-
-        .top-score-name {
-            flex: 1;
-            margin: 0 10px;
-            color: #e0e0e0;
-            font-weight: 500;
-            font-size: 0.95em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .top-score-points {
-            font-weight: bold;
-            color: #00d4ff;
-            font-size: 1em;
-        }
-
-        .top-score-house {
-            font-size: 1.2em;
-            margin-left: 8px;
-        }
-
-        /* Mini-cartes pour le classement en temps réel */
-        .mini-house-card {
-            background: #252538;
-            border-radius: 10px;
-            padding: 12px 8px;
-            text-align: center;
-            border: 2px solid;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .mini-house-card.phoenix-mini {
-            border-color: #ff6b6b;
-        }
-
-        .mini-house-card.axiome-mini {
-            border-color: #40e0d0;
-        }
-
-        .mini-house-card.nebula-mini {
-            border-color: #8a2be2;
-        }
-
-        .mini-house-card.zenith-mini {
-            border-color: #ffa500;
-        }
-
-        .mini-house-card.player-house {
-            box-shadow: 0 0 15px;
-            transform: scale(1.05);
-        }
-
-        .mini-house-card.player-house.phoenix-mini {
-            box-shadow: 0 0 15px #ff6b6b;
-        }
-
-        .mini-house-card.player-house.axiome-mini {
-            box-shadow: 0 0 15px #40e0d0;
-        }
-
-        .mini-house-card.player-house.nebula-mini {
-            box-shadow: 0 0 15px #8a2be2;
-        }
-
-        .mini-house-card.player-house.zenith-mini {
-            box-shadow: 0 0 15px #ffa500;
-        }
-
-        .mini-house-icon {
-            font-size: 1.5em;
-            margin-bottom: 3px;
-        }
-
-        .mini-house-name {
-            font-size: 0.75em;
-            color: #a0aec0;
-            margin-bottom: 3px;
-        }
-
-        .mini-house-score {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: white;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .welcome-content {
-                grid-template-columns: 1fr;
-            }
-
-            .house-grid, .leaderboard {
-                grid-template-columns: 1fr;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            .top-scores {
-                margin-top: 20px;
-            }
-        }
+/* ================================================================
+   RESET & ROOT
+================================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg:     #0a0a1a;
+    --bg2:    #14142a;
+    --card:   #1e1e36;
+    --border: #2e2e50;
+    --text:   #dde0f0;
+    --dim:    #6a6a9a;
+    --gold:   #ffd700;
+    /* équipes */
+    --elec:  #FFD700;
+    --hydro: #0088ff;
+    --pneu:  #aaaaaa;
+    --meca:  #ff3333;
+    --elec2: #8a2be2;
+    --ther:  #ff6b35;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ================================================================
+   SCREENS
+================================================================ */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+
+/* ================================================================
+   WELCOME SCREEN
+================================================================ */
+#welcome-screen { padding: 20px 24px 40px; }
+
+.welcome-header {
+    text-align: center;
+    padding: 18px 0 28px;
+}
+.welcome-header h1 {
+    font-size: 2em;
+    font-weight: 900;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--elec), var(--ther), var(--elec2), var(--hydro));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+}
+.welcome-header p {
+    color: var(--dim);
+    font-size: 0.8em;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+.welcome-layout {
+    display: grid;
+    grid-template-columns: 310px 1fr 290px;
+    gap: 18px;
+    max-width: 1380px;
+    margin: 0 auto;
+}
+
+/* PANEL */
+.panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 20px;
+}
+.panel-title {
+    font-size: 0.68em;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* LEFT PANEL */
+.name-input {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 15px;
+    padding: 11px 14px;
+    outline: none;
+    margin-bottom: 10px;
+    transition: border-color .2s, box-shadow .2s;
+}
+.name-input:focus { border-color: var(--hydro); box-shadow: 0 0 12px rgba(0,136,255,.2); }
+.name-input::placeholder { color: var(--dim); }
+
+.pseudo-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    margin-bottom: 16px;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.82em;
+    color: var(--dim);
+}
+.pseudo-tag {
+    background: rgba(255,215,0,.1);
+    border: 1px solid rgba(255,215,0,.3);
+    border-radius: 4px;
+    padding: 2px 9px;
+    color: var(--gold);
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 1.05em;
+}
+
+.teams-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.team-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 6px 10px;
+    cursor: pointer;
+    transition: all .22s;
+    text-align: center;
+}
+.team-card:hover { transform: translateY(-2px); }
+.team-card .t-icon { font-size: 1.5em; }
+.team-card .t-name { font-size: 0.68em; font-weight: 700; letter-spacing: .4px; margin-top: 4px; }
+
+.team-card[data-t="electriques"].selected  { border-color: var(--elec);  box-shadow: 0 0 18px rgba(255,215,0,.3);    background: rgba(255,215,0,.05); }
+.team-card[data-t="hydrauliques"].selected { border-color: var(--hydro); box-shadow: 0 0 18px rgba(0,136,255,.3);    background: rgba(0,136,255,.05); }
+.team-card[data-t="pneumatiques"].selected { border-color: var(--pneu);  box-shadow: 0 0 18px rgba(170,170,170,.3);  background: rgba(170,170,170,.05); }
+.team-card[data-t="mecaniques"].selected   { border-color: var(--meca);  box-shadow: 0 0 18px rgba(255,51,51,.3);    background: rgba(255,51,51,.05); }
+.team-card[data-t="electroniques"].selected{ border-color: var(--elec2); box-shadow: 0 0 18px rgba(138,43,226,.3);   background: rgba(138,43,226,.05); }
+.team-card[data-t="thermiques"].selected   { border-color: var(--ther);  box-shadow: 0 0 18px rgba(255,107,53,.3);   background: rgba(255,107,53,.05); }
+
+.btn-start {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .2s;
+    background: linear-gradient(135deg, var(--hydro), var(--elec2));
+    color: #fff;
+    box-shadow: 0 0 18px rgba(0,136,255,.25);
+}
+.btn-start:disabled { opacity: .3; cursor: not-allowed; box-shadow: none; }
+.btn-start:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 0 28px rgba(0,136,255,.45); }
+
+.personal-best {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    margin-top: 13px;
+    display: none;
+}
+.personal-best.show { display: block; }
+.pb-label { font-size: 0.68em; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); margin-bottom: 3px; }
+.pb-score { font-size: 1.6em; font-weight: 900; color: var(--gold); }
+.pb-missions { font-size: 0.72em; color: var(--dim); margin-top: 2px; }
+
+/* CENTER PANEL — MISSIONS */
+.missions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+.mission-vignette {
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    position: relative;
+    padding: 4px;
+    opacity: .3;
+    transition: opacity .2s;
+}
+.mission-vignette:hover { opacity: .55; }
+.mission-vignette.done { opacity: 1; border-color: var(--gold); box-shadow: 0 0 10px rgba(255,215,0,.18); }
+.mission-vignette .m-id { position: absolute; top: 4px; left: 6px; font-size: .52em; color: var(--dim); font-weight: 700; }
+.mission-vignette .m-icon { font-size: 1.25em; line-height: 1; }
+/* tooltip */
+.mission-vignette::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: .7em;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s;
+    z-index: 200;
+    color: var(--text);
+}
+.mission-vignette:hover::after { opacity: 1; }
+
+/* RIGHT PANEL — CLASSEMENTS */
+.tabs {
+    display: flex;
+    gap: 3px;
+    background: var(--card);
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 14px;
+}
+.tab-btn {
+    flex: 1;
+    padding: 7px 4px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--dim);
+    font-size: .7em;
+    font-weight: 700;
+    letter-spacing: .8px;
+    cursor: pointer;
+    transition: all .18s;
+    text-transform: uppercase;
+}
+.tab-btn.active { background: var(--bg2); color: var(--text); border: 1px solid var(--border); }
+
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.team-rank-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    border: 1px solid var(--border);
+}
+.trr-icon { font-size: 1.2em; flex-shrink: 0; }
+.trr-info { flex: 1; }
+.trr-name { font-size: .82em; font-weight: 700; }
+.trr-players { font-size: .65em; color: var(--dim); }
+.trr-right { text-align: right; flex-shrink: 0; }
+.trr-score { font-size: .95em; font-weight: 800; color: var(--gold); }
+.trr-pos { font-size: .7em; color: var(--dim); }
+
+.player-rank-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background: var(--card);
+    font-size: .82em;
+}
+.prr-pos { font-weight: 700; width: 22px; text-align: center; flex-shrink: 0; }
+.prr-pos.g { color: #FFD700; }
+.prr-pos.s { color: #C0C0C0; }
+.prr-pos.b { color: #CD7F32; }
+.prr-name { flex: 1; font-weight: 600; }
+.prr-pseudo { font-size: .72em; color: var(--dim); font-family: monospace; }
+.prr-score { font-weight: 700; color: var(--gold); }
+
+/* ================================================================
+   GAME SCREEN
+================================================================ */
+#game-screen { padding: 0; }
+
+.game-wrap { max-width: 860px; margin: 0 auto; padding: 14px 20px 24px; }
+
+.game-hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+}
+.hud-left { display: flex; align-items: center; gap: 10px; }
+.hud-team-icon { font-size: 1.1em; }
+.hud-team-name { font-weight: 700; font-size: .88em; }
+.hud-pseudo { font-family: monospace; font-size: .78em; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--gold); }
+.hud-timer { font-size: 1.3em; font-weight: 900; font-family: monospace; transition: color .3s; }
+.hud-timer.warn { color: #f59e0b; }
+.hud-timer.danger { color: #ff3366; animation: blink .5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.5} }
+.hud-score { font-size: 1.05em; font-weight: 700; }
+.hud-combo {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 11px;
+    font-size: .82em;
+    font-weight: 700;
+    transition: border-color .2s, color .2s, box-shadow .2s;
+}
+.hud-combo.c1 { border-color: var(--elec2); color: var(--elec2); }
+.hud-combo.c2 { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,.2); }
+.hud-combo.c3 { border-color: var(--ther); color: var(--ther); box-shadow: 0 0 8px rgba(255,107,53,.25); }
+.hud-combo.c4 { border-color: var(--meca); color: var(--meca); box-shadow: 0 0 12px rgba(255,51,51,.3); animation: blink .6s infinite; }
+
+/* Live teams */
+.live-teams {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+.live-team {
+    flex: 1;
+    min-width: 90px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 8px;
+    text-align: center;
+    transition: all .3s;
+}
+.lt-icon { font-size: .95em; }
+.lt-name { font-size: .58em; color: var(--dim); }
+.lt-score { font-size: .95em; font-weight: 700; color: var(--gold); }
+
+/* Question */
+.question-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px 28px;
+}
+.q-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+.q-counter { font-size: .7em; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); }
+.q-bonus-info { font-size: .72em; }
+.q-text { font-size: 1.12em; line-height: 1.65; margin-bottom: 22px; }
+
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 18px; }
+.option {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 13px 15px;
+    cursor: pointer;
+    transition: all .18s;
+    font-size: .93em;
+    text-align: center;
+}
+.option:hover { border-color: var(--hydro); box-shadow: 0 0 10px rgba(0,136,255,.18); }
+.option.selected { border-color: var(--gold); background: rgba(255,215,0,.07); color: var(--gold); }
+
+.numeric-input {
+    width: 100%;
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 1.25em;
+    padding: 13px 17px;
+    outline: none;
+    margin-bottom: 18px;
+    text-align: center;
+    transition: border-color .2s, box-shadow .2s;
+}
+.numeric-input:focus { border-color: var(--hydro); box-shadow: 0 0 12px rgba(0,136,255,.2); }
+
+.btn-validate {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .2s;
+    background: linear-gradient(135deg, var(--hydro), var(--elec2));
+    color: #fff;
+    box-shadow: 0 0 16px rgba(0,136,255,.2);
+}
+.btn-validate:hover { transform: translateY(-2px); box-shadow: 0 0 26px rgba(0,136,255,.4); }
+
+/* Mission toast */
+.mission-toast {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    box-shadow: 0 0 22px rgba(255,215,0,.25);
+    z-index: 1000;
+    animation: toastIn .3s ease;
+    max-width: 290px;
+}
+@keyframes toastIn { from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1} }
+.toast-icon { font-size: 1.5em; flex-shrink: 0; }
+.toast-title { font-weight: 700; font-size: .78em; color: var(--gold); }
+.toast-sub { font-size: .72em; color: var(--dim); }
+
+/* ================================================================
+   RESULTS SCREEN
+================================================================ */
+#results-screen { padding: 30px 22px 50px; }
+.results-wrap { max-width: 860px; margin: 0 auto; }
+
+.results-header { text-align: center; margin-bottom: 26px; }
+.results-header h2 { font-size: 1.9em; font-weight: 900; margin-bottom: 5px; }
+.results-header p { color: var(--dim); font-size: .9em; }
+
+.results-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+}
+.stat-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 16px;
+    text-align: center;
+}
+.stat-val { font-size: 1.9em; font-weight: 900; color: var(--gold); }
+.stat-lbl { font-size: .65em; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); margin-top: 4px; }
+
+.results-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+}
+.results-section h3 {
+    font-size: .68em;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 14px;
+}
+.unlocked-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.unlocked-badge {
+    background: rgba(255,215,0,.07);
+    border: 1px solid rgba(255,215,0,.25);
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: .82em;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.unlocked-badge.new-badge {
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(255,215,0,.25);
+    animation: pop .4s ease;
+}
+@keyframes pop { 0%{transform:scale(.8);opacity:0} 55%{transform:scale(1.06)} 100%{transform:scale(1);opacity:1} }
+
+.result-item {
+    padding: 11px 13px;
+    border-radius: 8px;
+    margin-bottom: 7px;
+    font-size: .88em;
+}
+.result-item.ok  { background: rgba(16,185,129,.09); border: 1px solid rgba(16,185,129,.28); }
+.result-item.ko  { background: rgba(239,68,68,.09);  border: 1px solid rgba(239,68,68,.28); }
+.ri-title { font-weight: 700; margin-bottom: 3px; }
+.ri-expl  { color: var(--dim); font-size: .85em; margin-top: 3px; }
+
+.btn-replay {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--ther), var(--gold));
+    color: #000;
+    box-shadow: 0 0 26px rgba(255,107,53,.28);
+    transition: all .2s;
+    margin-top: 4px;
+}
+.btn-replay:hover { transform: translateY(-2px); box-shadow: 0 0 38px rgba(255,107,53,.45); }
+
+/* ================================================================
+   RESPONSIVE
+================================================================ */
+@media (max-width: 1080px) {
+    .welcome-layout { grid-template-columns: 280px 1fr 260px; }
+}
+@media (max-width: 860px) {
+    .welcome-layout { grid-template-columns: 1fr; }
+    .results-stats { grid-template-columns: 1fr 1fr; }
+    .options { grid-template-columns: 1fr; }
+}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="welcome-screen">
-            <h1>⚡ Défi Mathématique</h1>
-            <p class="subtitle">Choisis ta maison et prouve ta valeur !</p>
-            
-            <input type="text" id="player-name" placeholder="Entre ton prénom..." maxlength="20" onkeypress="if(event.key==='Enter'){event.preventDefault(); const houses = document.querySelectorAll('.house-card'); if(houses.length > 0) houses[0].click();}}">
-            
-            <div class="welcome-content">
-                <div class="houses-section">
-                    <h3>Choisis ta maison :</h3>
-                    
-                    <div class="house-grid">
-                        <div class="house-card phoenix" onclick="selectHouse('phoenix')">
-                            <div class="house-icon">🔥</div>
-                            <div class="house-name">Phoenix</div>
-                            <div class="house-motto" style="color: #ff6b6b;">Passion & Courage</div>
-                            <div class="house-score" id="score-phoenix">0 points</div>
-                        </div>
-                        
-                        <div class="house-card axiome" onclick="selectHouse('axiome')">
-                            <div class="house-icon">💎</div>
-                            <div class="house-name">Axiome</div>
-                            <div class="house-motto" style="color: #40e0d0;">Logique & Précision</div>
-                            <div class="house-score" id="score-axiome">0 points</div>
-                        </div>
-                        
-                        <div class="house-card nebula" onclick="selectHouse('nebula')">
-                            <div class="house-icon">🌌</div>
-                            <div class="house-name">Nebula</div>
-                            <div class="house-motto" style="color: #8a2be2;">Créativité & Vision</div>
-                            <div class="house-score" id="score-nebula">0 points</div>
-                        </div>
-                        
-                        <div class="house-card zenith" onclick="selectHouse('zenith')">
-                            <div class="house-icon">⭐</div>
-                            <div class="house-name">Zenith</div>
-                            <div class="house-motto" style="color: #ffa500;">Excellence & Persévérance</div>
-                            <div class="house-score" id="score-zenith">0 points</div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="top-scores">
-                    <h3>🏆 Top 10 - Meilleurs Scores</h3>
-                    <div id="top-scores-list"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="game-screen" class="hidden">
-            <div class="question-header">
-                <div class="question-number" id="question-counter">Question 1/15</div>
-                <div class="timer" id="timer">⏱️ 2:00</div>
-            </div>
-            
-            <div id="time-bonus-indicator" style="text-align: center; margin: 10px 0; font-size: 0.9em; font-weight: bold;">
-                <span id="time-bonus-text"></span>
-            </div>
-
-            <div id="combo-container" class="hidden">
-                <div class="combo-display" id="combo-text"></div>
-            </div>
-
-            <!-- Classement en temps réel des maisons -->
-            <div id="live-house-ranking" style="margin: 20px 0;">
-                <div style="text-align: center; color: #a0aec0; font-size: 0.9em; margin-bottom: 10px;">
-                    🏆 Classement des Maisons
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                    <div class="mini-house-card phoenix-mini" id="mini-phoenix">
-                        <div class="mini-house-icon">🔥</div>
-                        <div class="mini-house-name">Phoenix</div>
-                        <div class="mini-house-score" id="live-phoenix">0</div>
-                    </div>
-                    <div class="mini-house-card axiome-mini" id="mini-axiome">
-                        <div class="mini-house-icon">💎</div>
-                        <div class="mini-house-name">Axiome</div>
-                        <div class="mini-house-score" id="live-axiome">0</div>
-                    </div>
-                    <div class="mini-house-card nebula-mini" id="mini-nebula">
-                        <div class="mini-house-icon">🌌</div>
-                        <div class="mini-house-name">Nebula</div>
-                        <div class="mini-house-score" id="live-nebula">0</div>
-                    </div>
-                    <div class="mini-house-card zenith-mini" id="mini-zenith">
-                        <div class="mini-house-icon">⭐</div>
-                        <div class="mini-house-name">Zenith</div>
-                        <div class="mini-house-score" id="live-zenith">0</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="question-text" id="question-text"></div>
-
-            <div id="question-container"></div>
-
-            <button id="next-btn" onclick="nextQuestion()">Question suivante</button>
-        </div>
-
-        <div id="results-screen" class="hidden">
-            <h1>🏆 Résultats</h1>
-            
-            <div class="final-score" id="final-score"></div>
-
-            <div class="results-container" id="results-container"></div>
-
-            <h3 style="text-align: center; margin: 30px 0 20px 0; color: #e0e0e0;">Scores des Maisons</h3>
-            <div class="leaderboard">
-                <div class="leaderboard-item phoenix">
-                    <div class="leaderboard-name">🔥 Phoenix</div>
-                    <div class="leaderboard-score" id="final-phoenix">0</div>
-                </div>
-                <div class="leaderboard-item axiome">
-                    <div class="leaderboard-name">💎 Axiome</div>
-                    <div class="leaderboard-score" id="final-axiome">0</div>
-                </div>
-                <div class="leaderboard-item nebula">
-                    <div class="leaderboard-name">🌌 Nebula</div>
-                    <div class="leaderboard-score" id="final-nebula">0</div>
-                </div>
-                <div class="leaderboard-item zenith">
-                    <div class="leaderboard-name">⭐ Zenith</div>
-                    <div class="leaderboard-score" id="final-zenith">0</div>
-                </div>
-            </div>
-
-            <div class="top-scores" style="margin-top: 30px;">
-                <h3>🏆 Top 10 - Meilleurs Scores</h3>
-                <div id="top-scores-list-results"></div>
-            </div>
-
-            <button onclick="restartGame()" style="margin-top: 30px;">Rejouer</button>
-        </div>
+<!-- ================================================================
+     WELCOME SCREEN
+================================================================ -->
+<div id="welcome-screen" class="screen active">
+    <div class="welcome-header">
+        <h1>⚙️ Systèmes Techniques</h1>
+        <p>Quiz Mathématiques · Bac Pro</p>
     </div>
 
-    <script>
-        // ===== CONFIGURATION FIREBASE =====
-        const firebaseConfig = {
-            apiKey: "AIzaSyCs7Xk5gh7WFNs3DVzIQ4AQsmZVGpf0SO0",
-            authDomain: "math-game-a43d6.firebaseapp.com",
-            databaseURL: "https://math-game-a43d6-default-rtdb.firebaseio.com",
-            projectId: "math-game-a43d6",
-            storageBucket: "math-game-a43d6.firebasestorage.app",
-            messagingSenderId: "295807036015",
-            appId: "1:295807036015:web:840223907e097b08fd3b9a",
-            measurementId: "G-5QGT483Z7T"
-        };
+    <div class="welcome-layout">
 
-        // Initialiser Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        
-        console.log('🔥 Firebase initialisé avec succès');
-        
-        // ===== CODE DU JEU =====
-        
-        // État du jeu
-        let playerName = '';
-        let playerHouse = '';
-        let currentQuestion = 0;
-        let score = 0;
-        let combo = 0;
-        let answers = [];
-        let questions = [];
-        let startTime;
-        let timerInterval;
-        let timeRemaining = 120; // 120 secondes = 2 minutes
-        let houseScores = {
-            phoenix: 0,
-            axiome: 0,
-            nebula: 0,
-            zenith: 0
-        };
+        <!-- LEFT : Setup joueur -->
+        <div class="panel">
+            <div class="panel-title">Rejoindre une équipe</div>
 
-        // Vérifier si window.storage est disponible
-        console.log('window.storage disponible ?', typeof window.storage !== 'undefined');
-        
-        // Fonction de test du storage
-        // Générateurs de questions
-        const questionGenerators = [
-            // 1. Pourcentages - Augmenter
-            () => {
-                const percentage = Math.floor(Math.random() * 29) + 2; // Entre 2 et 30
-                const correctMultiplier = 1 + percentage / 100;
-                const options = [
-                    { text: `× ${correctMultiplier}`, correct: true },
-                    { text: `× ${percentage / 100}`, correct: false },
-                    { text: `× ${1 - percentage / 100}`, correct: false },
-                    { text: `+ ${percentage}`, correct: false }
-                ];
-                shuffle(options);
-                return {
-                    text: `Augmenter de ${percentage}% revient à effectuer l'opération :`,
-                    type: 'mcq',
-                    options: options,
-                    explanation: `100% + ${percentage}% = ${100 + percentage}%, soit ${correctMultiplier}`
-                };
-            },
+            <input type="text" id="inp-prenom" class="name-input" placeholder="Ton prénom..." maxlength="20" autocomplete="off">
 
-            // 2. Pourcentages - Réduire
-            () => {
-                const percentage = [5, 10, 15, 20, 25, 30][Math.floor(Math.random() * 6)];
-                const correctMultiplier = 1 - percentage / 100;
-                const options = [
-                    { text: `× ${correctMultiplier}`, correct: true },
-                    { text: `× ${percentage / 100}`, correct: false },
-                    { text: `× ${1 + percentage / 100}`, correct: false },
-                    { text: `− ${percentage}`, correct: false }
-                ];
-                shuffle(options);
-                return {
-                    text: `Réduire de ${percentage}% revient à effectuer l'opération :`,
-                    type: 'mcq',
-                    options: options,
-                    explanation: `100% − ${percentage}% = ${100 - percentage}%, soit ${correctMultiplier}`
-                };
-            },
+            <div class="pseudo-row" id="pseudo-row">
+                <span style="color:var(--dim);font-size:.88em;">Ton pseudo apparaîtra ici…</span>
+            </div>
 
-            // 3. Calcul de fraction d'une quantité
-            () => {
-                const numerators = [2, 3, 4, 5, 7, 3, 2];
-                const denominators = [5, 4, 5, 8, 10, 7, 3];
-                const idx = Math.floor(Math.random() * numerators.length);
-                const num = numerators[idx];
-                const den = denominators[idx];
-                const quantity = den * (Math.floor(Math.random() * 15) + 5);
-                const answer = (num * quantity) / den;
-                
-                return {
-                    text: `Calculer ${num}/${den} de ${quantity} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${quantity} × ${num}/${den} = ${quantity} ÷ ${den} × ${num} = ${answer}`
-                };
-            },
+            <div class="panel-title">Choisis ton équipe</div>
+            <div class="teams-grid">
+                <div class="team-card" data-t="electriques" onclick="selectTeam('electriques')">
+                    <div class="t-icon">⚡</div>
+                    <div class="t-name" style="color:var(--elec)">Électriques</div>
+                </div>
+                <div class="team-card" data-t="hydrauliques" onclick="selectTeam('hydrauliques')">
+                    <div class="t-icon">💧</div>
+                    <div class="t-name" style="color:var(--hydro)">Hydrauliques</div>
+                </div>
+                <div class="team-card" data-t="pneumatiques" onclick="selectTeam('pneumatiques')">
+                    <div class="t-icon">💨</div>
+                    <div class="t-name" style="color:var(--pneu)">Pneumatiques</div>
+                </div>
+                <div class="team-card" data-t="mecaniques" onclick="selectTeam('mecaniques')">
+                    <div class="t-icon">⚙️</div>
+                    <div class="t-name" style="color:var(--meca)">Mécaniques</div>
+                </div>
+                <div class="team-card" data-t="electroniques" onclick="selectTeam('electroniques')">
+                    <div class="t-icon">🔌</div>
+                    <div class="t-name" style="color:var(--elec2)">Électroniques</div>
+                </div>
+                <div class="team-card" data-t="thermiques" onclick="selectTeam('thermiques')">
+                    <div class="t-icon">🔥</div>
+                    <div class="t-name" style="color:var(--ther)">Thermiques</div>
+                </div>
+            </div>
 
-            // 4. Évaluation de fonction affine
-            () => {
-                let a = Math.floor(Math.random() * 8) - 4;
-                if (a === 0) a = Math.random() < 0.5 ? 1 : -1;
-                
-                const b = Math.floor(Math.random() * 10) - 5;
-                const x = Math.floor(Math.random() * 20) - 10;
-                const answer = a * x + b;
-                
-                // Construction de l'affichage de la fonction
-                const functionDisplay = b === 0 ? `${a}x` : `${a}x ${b >= 0 ? '+' : ''} ${b}`;
-                const calculDisplay = b === 0 ? `${a} × ${x}` : `${a} × ${x} ${b >= 0 ? '+' : ''} ${b}`;
-                const stepDisplay = b === 0 ? `${a * x}` : `${a * x} ${b >= 0 ? '+' : ''} ${b}`;
-                
-                return {
-                    text: `La fonction f est définie par f(x) = ${functionDisplay}. Calculer f(${x}) (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `f(${x}) = ${calculDisplay} = ${stepDisplay} = ${answer}`
-                };
-            },
+            <button class="btn-start" id="btn-start" onclick="startGame()" disabled>▶ Lancer le quiz</button>
 
-            // 5. Multiplication par nombre décimal
-            () => {
-                const base = [100, 200, 300, 400, 500, 600][Math.floor(Math.random() * 6)];
-                const mult = [0.25, 0.5, 0.75][Math.floor(Math.random() * 3)];
-                const answer = base * mult;
-                
-                return {
-                    text: `Calculer ${base} × ${mult.toString().replace('.', ',')} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${base} × ${mult.toString().replace('.', ',')} = ${answer}`
-                };
-            },
+            <div class="personal-best" id="personal-best">
+                <div class="pb-label">🏆 Ton meilleur score</div>
+                <div class="pb-score" id="pb-score">—</div>
+                <div class="pb-missions" id="pb-missions">0 mission(s) débloquée(s)</div>
+            </div>
+        </div>
 
-            // 6. Opérations sur nombres relatifs - Addition
-            () => {
-                const a = Math.floor(Math.random() * 20) - 10;
-                const b = Math.floor(Math.random() * 20) - 10;
-                const answer = a + b;
-                
-                // Affichage avec parenthèses seulement pour les négatifs
-                const bDisplay = b < 0 ? `(${b})` : b;
-                
-                return {
-                    text: `Calculer : ${a} + ${bDisplay} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${a} + ${bDisplay} = ${answer}`
-                };
-            },
+        <!-- CENTER : Missions -->
+        <div class="panel">
+            <div class="panel-title">🎯 16 Missions</div>
+            <div class="missions-grid" id="missions-grid"><!-- JS --></div>
+        </div>
 
-            // 7. Opérations sur nombres relatifs - Soustraction
-            () => {
-                const a = Math.floor(Math.random() * 20) - 10;
-                const b = Math.floor(Math.random() * 20) - 10;
-                const answer = a - b;
-                
-                // Affichage avec parenthèses seulement pour les négatifs
-                const bDisplay = b < 0 ? `(${b})` : b;
-                
-                return {
-                    text: `Calculer : ${a} − ${bDisplay} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${a} − ${bDisplay} = ${answer}`
-                };
-            },
+        <!-- RIGHT : Classements -->
+        <div class="panel">
+            <div class="panel-title">📊 Classements</div>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('teams')">Équipes</button>
+                <button class="tab-btn" onclick="switchTab('players')">Joueurs</button>
+                <button class="tab-btn" onclick="switchTab('missions')">Missions</button>
+            </div>
+            <div id="pane-teams"   class="tab-pane active"><div id="lb-teams">  <div class="lb-loading">Chargement…</div></div></div>
+            <div id="pane-players" class="tab-pane">       <div id="lb-players"><div class="lb-loading">Chargement…</div></div></div>
+            <div id="pane-missions" class="tab-pane">      <div id="lb-missions"><div class="lb-loading">Chargement…</div></div></div>
+        </div>
 
-            // 8. Opérations sur nombres relatifs - Multiplication
-            () => {
-                const a = Math.floor(Math.random() * 10) - 5;
-                const b = Math.floor(Math.random() * 10) - 5;
-                if (a === 0 || b === 0) return questionGenerators[7]();
-                const answer = a * b;
-                
-                // Affichage avec parenthèses seulement pour les négatifs
-                const aDisplay = a < 0 ? `(${a})` : a;
-                const bDisplay = b < 0 ? `(${b})` : b;
-                
-                return {
-                    text: `Calculer : ${aDisplay} × ${bDisplay} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${aDisplay} × ${bDisplay} = ${answer}`
-                };
-            },
+    </div>
+</div>
 
-            // 9. Résolution d'équation simple
-            () => {
-                let a = Math.floor(Math.random() * 5) + 2;
-                let b = Math.floor(Math.random() * 10) - 5;
-                if (b === 0) b = Math.random() < 0.5 ? 1 : -1; // Éviter b = 0
-                const c = Math.floor(Math.random() * 20) - 10;
-                const answer = (c - b) / a;
-                
-                return {
-                    text: `Résoudre l'équation : ${a}x ${b >= 0 ? '+' : ''} ${b} = ${c} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${a}x = ${c} − (${b}) = ${c - b}, donc x = ${c - b}/${a} = ${answer.toFixed(2)}`
-                };
-            },
+<!-- ================================================================
+     GAME SCREEN
+================================================================ -->
+<div id="game-screen" class="screen">
+    <div class="game-wrap">
 
-            // 10. Évaluation de fonction polynomiale
-            () => {
-                let a = Math.floor(Math.random() * 5) + 1;
-                let b = Math.floor(Math.random() * 10) - 5;
-                let c = Math.floor(Math.random() * 10) - 5;
-                if (b === 0) b = Math.random() < 0.5 ? 1 : -1; // Éviter b = 0
-                if (c === 0) c = Math.random() < 0.5 ? 1 : -1; // Éviter c = 0
-                const x = Math.floor(Math.random() * 5) + 1;
-                const answer = a * x * x + b * x + c;
-                
-                return {
-                    text: `La fonction f est définie par f(x) = ${a}x² ${b >= 0 ? '+' : ''} ${b}x ${c >= 0 ? '+' : ''} ${c}. Calculer f(${x}) (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `f(${x}) = ${a}×${x}² ${b >= 0 ? '+' : ''} ${b}×${x} ${c >= 0 ? '+' : ''} ${c} = ${a * x * x} ${b >= 0 ? '+' : ''} ${b * x} ${c >= 0 ? '+' : ''} ${c} = ${answer}`
-                };
-            },
+        <!-- HUD -->
+        <div class="game-hud">
+            <div class="hud-left">
+                <span class="hud-team-icon" id="hud-icon">⚡</span>
+                <span class="hud-team-name" id="hud-tname">—</span>
+                <span class="hud-pseudo" id="hud-pseudo">—</span>
+            </div>
+            <div class="hud-timer" id="hud-timer">⏱ 2:00</div>
+            <div class="hud-score">Score : <span id="hud-score">0</span> pts</div>
+            <div class="hud-combo" id="hud-combo">Combo ×1,0</div>
+        </div>
 
-            // 12. Calcul de pourcentage d'une quantité
-            () => {
-                const percentage = [10, 20, 25, 50, 15, 30][Math.floor(Math.random() * 6)];
-                const amount = Math.floor(Math.random() * 200) + 100;
-                const answer = (amount * percentage) / 100;
-                
-                return {
-                    text: `Calculer ${percentage}% de ${amount} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${amount} × ${percentage}/100 = ${amount} × ${percentage / 100} = ${answer}`
-                };
-            },
+        <!-- Live scores équipes -->
+        <div class="live-teams" id="live-teams"><!-- JS --></div>
 
-            // 12. Développement simple
-            () => {
-                let a = Math.floor(Math.random() * 5) + 2;
-                let b = Math.floor(Math.random() * 10) - 5;
-                let c = Math.floor(Math.random() * 10) - 5;
-                
-                if (b === 0) b = Math.random() < 0.5 ? 2 : -2;
-                if (c === 0) c = Math.random() < 0.5 ? 3 : -3;
-                
-                const options = [
-                    { text: `${a * b}x ${a * c >= 0 ? '+' : ''} ${a * c}`, correct: true },
-                    { text: `${a}x² ${b + c >= 0 ? '+' : ''} ${b + c}`, correct: false },
-                    { text: `${a * b + a * c}x`, correct: false },
-                    { text: `${a}x ${b * c >= 0 ? '+' : ''} ${b * c}`, correct: false }
-                ];
-                shuffle(options);
-                
-                return {
-                    text: `Développer : ${a} × (${b}x ${c >= 0 ? '+' : ''} ${c})`,
-                    type: 'mcq',
-                    options: options,
-                    explanation: `${a} × (${b}x ${c >= 0 ? '+' : ''} ${c}) = ${a} × ${b}x + ${a} × (${c}) = ${a * b}x ${a * c >= 0 ? '+' : ''} ${a * c}`
-                };
-            },
+        <!-- Carte question -->
+        <div class="question-card">
+            <div class="q-header">
+                <div class="q-counter" id="q-counter">Question 1/15</div>
+                <div class="q-bonus-info" id="q-bonus">⚡ <span style="color:#10b981">Bonus +3 pts</span></div>
+            </div>
+            <div class="q-text" id="q-text">—</div>
+            <div id="q-container"></div>
+            <button class="btn-validate" id="btn-validate" onclick="nextQuestion()">Valider →</button>
+        </div>
 
-            // 13. Priorités opératoires
-            () => {
-                const a = Math.floor(Math.random() * 10) + 1;
-                const b = Math.floor(Math.random() * 10) + 1;
-                const c = Math.floor(Math.random() * 10) + 1;
-                const d = Math.floor(Math.random() * 10) + 1;
-                const answer = a + b * c + d;
-                
-                return {
-                    text: `Calculer : ${a} + ${b} × ${c} + ${d} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${a} + ${b} × ${c} + ${d} = ${a} + ${b * c} + ${d} = ${answer} (on multiplie d'abord)`
-                };
-            },
+    </div>
+</div>
 
-            // 14. Puissances
-            () => {
-                const bases = [2, 3, 4, 5, 10];
-                const exponents = [2, 3]; // Limité à 2 et 3
-                const base = bases[Math.floor(Math.random() * bases.length)];
-                const exp = exponents[Math.floor(Math.random() * exponents.length)];
-                const answer = Math.pow(base, exp);
-                
-                return {
-                    text: `Calculer : ${base}<sup>${exp}</sup> (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `${base}<sup>${exp}</sup> = ${base}${exp > 1 ? ' × ' + base : ''}${exp > 2 ? ' × ' + base : ''} = ${answer}`
-                };
-            },
+<!-- ================================================================
+     RESULTS SCREEN
+================================================================ -->
+<div id="results-screen" class="screen">
+    <div class="results-wrap">
+        <div class="results-header">
+            <h2 id="res-title">Résultats</h2>
+            <p id="res-subtitle"></p>
+        </div>
 
-            // 15. Conversion d'unités - Longueur
-            () => {
-                const conversionTypes = [
-                    {
-                        // km en m : entre 0,1 et 9 km par pas de 0,1
-                        getValue: () => {
-                            const km = (Math.floor(Math.random() * 89) + 1) / 10; // 0.1 à 8.9
-                            return {
-                                question: `${km.toString().replace('.', ',')} km en mètres`,
-                                answer: km * 1000,
-                                expl: `${km.toString().replace('.', ',')} km = ${km.toString().replace('.', ',')} × 1000 = ${km * 1000} m`
-                            };
-                        }
-                    },
-                    {
-                        // cm en m : entre 100 et 800 cm par pas de 10
-                        getValue: () => {
-                            const cm = (Math.floor(Math.random() * 71) + 10) * 10; // 100 à 800 par pas de 10
-                            return {
-                                question: `${cm} cm en mètres`,
-                                answer: cm / 100,
-                                expl: `${cm} cm = ${cm} ÷ 100 = ${cm / 100} m`
-                            };
-                        }
-                    },
-                    {
-                        // m en km : entre 1200 et 7500 m par pas de 40
-                        getValue: () => {
-                            const steps = Math.floor(Math.random() * 158) + 30; // 30 à 187 steps
-                            const m = steps * 40; // 1200 à 7480
-                            return {
-                                question: `${m} m en km`,
-                                answer: m / 1000,
-                                expl: `${m} m = ${m} ÷ 1000 = ${(m / 1000).toString().replace('.', ',')} km`
-                            };
-                        }
-                    },
-                    {
-                        // mm en cm : entre 100 et 700 mm par pas de 10
-                        getValue: () => {
-                            const mm = (Math.floor(Math.random() * 61) + 10) * 10; // 100 à 700 par pas de 10
-                            return {
-                                question: `${mm} mm en cm`,
-                                answer: mm / 10,
-                                expl: `${mm} mm = ${mm} ÷ 10 = ${mm / 10} cm`
-                            };
-                        }
-                    }
-                ];
-                
-                const chosenType = conversionTypes[Math.floor(Math.random() * conversionTypes.length)];
-                const conversion = chosenType.getValue();
-                
-                return {
-                    text: `Convertir ${conversion.question} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: conversion.answer,
-                    tolerance: 0.01,
-                    explanation: conversion.expl
-                };
-            },
+        <div class="results-stats">
+            <div class="stat-box"><div class="stat-val" id="rs-score">0</div><div class="stat-lbl">Points</div></div>
+            <div class="stat-box"><div class="stat-val" id="rs-correct">0/15</div><div class="stat-lbl">Réponses</div></div>
+            <div class="stat-box"><div class="stat-val" id="rs-combo">0</div><div class="stat-lbl">Max combo</div></div>
+            <div class="stat-box"><div class="stat-val" id="rs-missions">0</div><div class="stat-lbl">Nouvelles missions</div></div>
+        </div>
 
-            // 16. Conversion d'unités - Temps
-            () => {
-                const conversionTypes = [
-                    {
-                        // heures en minutes : entre 1 et 5 h (entiers)
-                        getValue: () => {
-                            const h = Math.floor(Math.random() * 5) + 1; // 1 à 5
-                            return {
-                                question: `${h} heure${h > 1 ? 's' : ''} en minutes`,
-                                answer: h * 60,
-                                expl: `${h} h = ${h} × 60 = ${h * 60} min`
-                            };
-                        }
-                    },
-                    {
-                        // heures en minutes : 0,5h / 1,5h / 2,5h / 3,5h
-                        getValue: () => {
-                            const h = (Math.floor(Math.random() * 4) + 1) - 0.5; // 0.5, 1.5, 2.5, 3.5
-                            return {
-                                question: `${h.toString().replace('.', ',')} heures en minutes`,
-                                answer: h * 60,
-                                expl: `${h.toString().replace('.', ',')} h = ${h.toString().replace('.', ',')} × 60 = ${h * 60} min`
-                            };
-                        }
-                    },
-                    {
-                        // minutes en heures : 60, 120, 180, 240, 300 min
-                        getValue: () => {
-                            const min = (Math.floor(Math.random() * 5) + 1) * 60; // 60, 120, 180, 240, 300
-                            return {
-                                question: `${min} minutes en heures`,
-                                answer: min / 60,
-                                expl: `${min} min = ${min} ÷ 60 = ${min / 60} h`
-                            };
-                        }
-                    },
-                    {
-                        // minutes en heures : 30, 90, 150, 210 min (× 0.5)
-                        getValue: () => {
-                            const halfHours = Math.floor(Math.random() * 4) + 1; // 1, 2, 3, 4
-                            const min = halfHours * 60 - 30; // 30, 90, 150, 210
-                            return {
-                                question: `${min} minutes en heures`,
-                                answer: min / 60,
-                                expl: `${min} min = ${min} ÷ 60 = ${(min / 60).toString().replace('.', ',')} h`
-                            };
-                        }
-                    },
-                    {
-                        // secondes en minutes : 60, 120, 180, 240, 300, 360 s
-                        getValue: () => {
-                            const s = (Math.floor(Math.random() * 6) + 1) * 60; // 60 à 360 par pas de 60
-                            return {
-                                question: `${s} secondes en minutes`,
-                                answer: s / 60,
-                                expl: `${s} s = ${s} ÷ 60 = ${s / 60} min`
-                            };
-                        }
-                    },
-                    {
-                        // minutes en secondes : 1, 2, 3, 4, 5 min
-                        getValue: () => {
-                            const min = Math.floor(Math.random() * 5) + 1; // 1 à 5
-                            return {
-                                question: `${min} minute${min > 1 ? 's' : ''} en secondes`,
-                                answer: min * 60,
-                                expl: `${min} min = ${min} × 60 = ${min * 60} s`
-                            };
-                        }
-                    }
-                ];
-                
-                const chosenType = conversionTypes[Math.floor(Math.random() * conversionTypes.length)];
-                const conversion = chosenType.getValue();
-                
-                return {
-                    text: `Convertir ${conversion.question} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: conversion.answer,
-                    tolerance: 0.01,
-                    explanation: conversion.expl
-                };
-            },
+        <div class="results-section">
+            <h3>🎯 Missions débloquées cette partie</h3>
+            <div id="unlocked-list" class="unlocked-list">
+                <span style="color:var(--dim);font-size:.85em;">Aucune nouvelle mission cette partie.</span>
+            </div>
+        </div>
 
-            // 18. Moyenne arithmétique
-            () => {
-                const n = Math.floor(Math.random() * 3) + 3;
-                const numbers = [];
-                for (let i = 0; i < n; i++) {
-                    numbers.push(Math.floor(Math.random() * 20) + 1);
-                }
-                const sum = numbers.reduce((a, b) => a + b, 0);
-                const answer = Math.round((sum / n) * 100) / 100;
-                
-                return {
-                    text: `Calculer la moyenne de : ${numbers.join(', ')} (arrondi au centième, résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.02,
-                    explanation: `(${numbers.join(' + ')}) ÷ ${n} = ${sum} ÷ ${n} = ${answer}`
-                };
-            },
+        <div class="results-section">
+            <h3>📋 Détail des réponses</h3>
+            <div id="answers-list"></div>
+        </div>
 
-            // 18. Appartenance à une droite
-            () => {
-                let a = Math.floor(Math.random() * 5) + 1;
-                // Ajouter les cas a=1 et a=-1
-                if (Math.random() < 0.3) {
-                    a = Math.random() < 0.5 ? 1 : -1;
-                }
-                let b = Math.floor(Math.random() * 10) - 5;
-                if (b === 0) b = Math.random() < 0.5 ? 1 : -1; // Éviter b = 0
-                const x = Math.floor(Math.random() * 10) - 5;
-                const yCorrect = a * x + b;
-                const yWrong = yCorrect + (Math.random() < 0.5 ? 3 : -3);
-                const isCorrect = Math.random() < 0.5;
-                const y = isCorrect ? yCorrect : yWrong;
-                
-                // Affichage de ax avec cas spéciaux a=1 et a=-1
-                const aDisplay = a === 1 ? 'x' : a === -1 ? '−x' : `${a}x`;
-                
-                const options = [
-                    { text: 'Vrai', correct: isCorrect },
-                    { text: 'Faux', correct: !isCorrect }
-                ];
-                
-                return {
-                    text: `La droite (D) a pour équation y = ${aDisplay} ${b >= 0 ? '+' : '−'} ${Math.abs(b)}. Le point A(${x} ; ${y}) appartient à (D).`,
-                    type: 'mcq',
-                    options: options,
-                    explanation: `${a === 1 ? '' : a === -1 ? '−' : a} × ${x} ${b >= 0 ? '+' : '−'} ${Math.abs(b)} = ${yCorrect}. ${isCorrect ? 'Le point appartient bien à la droite.' : `Le point n'appartient pas à la droite car ${y} ≠ ${yCorrect}.`}`
-                };
-            },
+        <button class="btn-replay" onclick="goHome()">↩ Rejouer</button>
+    </div>
+</div>
 
-            // 20. Arrondi au centième
-            () => {
-                const num = (Math.random() * 100 + 10).toFixed(4);
-                const answer = parseFloat(parseFloat(num).toFixed(2));
-                
-                return {
-                    text: `Arrondir ${num} au centième (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.001,
-                    explanation: `${num} ≈ ${answer} au centième près`
-                };
-            },
+<!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+<script>
+/* ================================================================
+   FIREBASE
+================================================================ */
+const firebaseConfig = {
+    apiKey: "AIzaSyCs7Xk5gh7WFNs3DVzIQ4AQsmZVGpf0SO0",
+    authDomain: "math-game-a43d6.firebaseapp.com",
+    databaseURL: "https://math-game-a43d6-default-rtdb.firebaseio.com",
+    projectId: "math-game-a43d6",
+    storageBucket: "math-game-a43d6.firebasestorage.app",
+    messagingSenderId: "295807036015",
+    appId: "1:295807036015:web:840223907e097b08fd3b9a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-            // 21. Arrondi à l'unité
-            () => {
-                const num = (Math.random() * 100 + 50).toFixed(2);
-                const answer = Math.round(parseFloat(num));
-                
-                return {
-                    text: `Arrondir ${num} à l'unité (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.001,
-                    explanation: `${num} ≈ ${answer} à l'unité près`
-                };
-            },
+/* ================================================================
+   CONSTANTES
+================================================================ */
+const TEAMS = {
+    electriques:   { name: 'Les Électriques',   short: 'Électriques',   icon: '⚡', color: '#FFD700' },
+    hydrauliques:  { name: 'Les Hydrauliques',  short: 'Hydrauliques',  icon: '💧', color: '#0088ff' },
+    pneumatiques:  { name: 'Les Pneumatiques',  short: 'Pneumatiques',  icon: '💨', color: '#aaaaaa' },
+    mecaniques:    { name: 'Les Mécaniques',    short: 'Mécaniques',    icon: '⚙️', color: '#ff3333' },
+    electroniques: { name: 'Les Électroniques', short: 'Électroniques', icon: '🔌', color: '#8a2be2' },
+    thermiques:    { name: 'Les Thermiques',    short: 'Thermiques',    icon: '🔥', color: '#ff6b35' }
+};
 
-            // 22. Proportionnalité - Prix unitaire
-            () => {
-                const quantity = Math.floor(Math.random() * 10) + 3; // 3 à 12
-                const unitPrice = Math.floor(Math.random() * 20) + 10; // 10 à 29
-                const totalPrice = unitPrice * quantity;
-                const answer = totalPrice / quantity;
-                
-                return {
-                    text: `${quantity} articles coûtent ${totalPrice} €. Quel est le prix d'un article ? (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `Prix unitaire = ${totalPrice} ÷ ${quantity} = ${answer} €`
-                };
-            },
+const MISSIONS = [
+    { id:1,  icon:'⭐',       name:'3 bonnes réponses de suite' },
+    { id:2,  icon:'⭐⭐',     name:'5 bonnes réponses de suite' },
+    { id:3,  icon:'⭐⭐⭐',   name:'10 bonnes réponses de suite' },
+    { id:4,  icon:'🏆',       name:'Questionnaire parfait (15/15)' },
+    { id:5,  icon:'⚡',       name:'3 réponses rapides (<10s)' },
+    { id:6,  icon:'⚡⚡',     name:'5 réponses rapides (<10s)' },
+    { id:7,  icon:'🔥',       name:'Combo multiplicateur ×2,5' },
+    { id:8,  icon:'🔥🔥',     name:'Combo multiplicateur ×5,0' },
+    { id:9,  icon:'🎯',       name:'Aucune erreur sur 10 questions' },
+    { id:10, icon:'🎯🎯',     name:'Aucune erreur sur 15 questions' },
+    { id:11, icon:'⚡⚡⚡',   name:'10 questions en moins de 80 s' },
+    { id:12, icon:'🚀',       name:'5 questions en moins de 30 s' },
+    { id:13, icon:'💰',       name:'Score supérieur à 50 points' },
+    { id:14, icon:'💰💰',     name:'Score supérieur à 80 points' },
+    { id:15, icon:'📈',       name:'Améliorer son meilleur score' },
+    { id:16, icon:'🏅',       name:'Meilleur score que le joueur précédent' }
+];
 
-            // 23. Taux d'évolution
-            () => {
-                const valInit = (Math.floor(Math.random() * 51) + 50) * 10; // 500 à 1000 par pas de 10
-                const variation = (Math.floor(Math.random() * 21) - 10) * 10; // -100 à +100 par pas de 10
-                const valFinal = valInit + variation;
-                const answer = Math.round(((valFinal - valInit) / valInit) * 10000) / 100;
-                
-                return {
-                    text: `Calculer le taux d'évolution de ${valInit} à ${valFinal} (réponse en pourcentage, arrondi au centième, résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `((${valFinal} − ${valInit}) ÷ ${valInit}) × 100 = ${answer}%`
-                };
-            },
+/* multiplicateur selon combo */
+function getMultiplier(combo) {
+    if (combo >= 13) return 5.0;
+    if (combo >= 10) return 3.5;
+    if (combo >= 7)  return 2.5;
+    if (combo >= 5)  return 2.0;
+    if (combo >= 3)  return 1.5;
+    return 1.0;
+}
 
-            // 24. Vitesse moyenne
-            () => {
-                const distance = [120, 150, 200, 250, 300][Math.floor(Math.random() * 5)];
-                const time = [2, 2.5, 3, 4][Math.floor(Math.random() * 4)];
-                const answer = distance / time;
-                
-                return {
-                    text: `Calculer la vitesse moyenne pour parcourir ${distance} km en ${time} h (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.1,
-                    explanation: `Vitesse = ${distance} ÷ ${time} = ${answer} km/h`
-                };
-            },
+/* ================================================================
+   ÉTAT
+================================================================ */
+let playerPseudo = '';
+let playerPrenom = '';
+let playerTeam   = '';
 
-            // 25. TVA - Calcul TTC
-            () => {
-                const ht = Math.floor(Math.random() * 200) + 100;
-                const tva = [5.5, 10, 20][Math.floor(Math.random() * 3)];
-                const answer = Math.round(ht * (1 + tva / 100) * 100) / 100;
-                
-                return {
-                    text: `Prix HT = ${ht} €, TVA = ${tva}%. Calculer le prix TTC (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.1,
-                    explanation: `Prix TTC = ${ht} × ${1 + tva / 100} = ${answer} €`
-                };
-            },
+let questions        = [];
+let currentQuestion  = 0;
+let score            = 0;
+let answers          = [];
+let timeRemaining    = 120;
+let timerInterval    = null;
+let questionStartTime = null;
+let gameStartTime     = null;
 
-            // 26. Factorisation simple
-            () => {
-                const a = Math.floor(Math.random() * 4) + 2; // 2 à 5
-                const b = Math.floor(Math.random() * 8) + 1; // 1 à 8
-                
-                const options = [
-                    { text: `${a} × (x + ${b})`, correct: true },
-                    { text: `${a}x + ${b}`, correct: false },
-                    { text: `${a} × x + ${a} × ${b}`, correct: false },
-                    { text: `(${a} + x) × ${b}`, correct: false }
-                ];
-                shuffle(options);
-                
-                return {
-                    text: `Factoriser : ${a}x + ${a * b}`,
-                    type: 'mcq',
-                    options: options,
-                    explanation: `${a}x + ${a * b} = ${a} × x + ${a} × ${b} = ${a} × (x + ${b})`
-                };
-            },
+let stats = {};
+function resetStats(prevBest = 0, lastScore = 0) {
+    stats = {
+        currentCombo:    0, maxCombo:       0,
+        currentQuick:    0, maxQuick:       0,
+        maxMultiplier:   1.0,
+        correctAnswers:  0, totalAnswered:  0,
+        errorsFirst10:   0,
+        timeAt5q:       9999, timeAt10q:   9999,
+        previousBest:   prevBest,
+        lastPlayerScore: lastScore
+    };
+}
+resetStats();
 
-            // 27. Périmètre d'un rectangle
-            () => {
-                const L = Math.floor(Math.random() * 15) + 5;
-                const l = Math.floor(Math.random() * 10) + 3;
-                const answer = 2 * (L + l);
-                
-                return {
-                    text: `Calculer le périmètre d'un rectangle de longueur ${L} cm et largeur ${l} cm (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `Périmètre = 2 × (${L} + ${l}) = 2 × ${L + l} = ${answer} cm`
-                };
-            },
+/* cache Firebase */
+let fbTeams   = {};
+let fbPlayers = {};
+let fbMissions = {};
+let playerMissions = [];   /* IDs missions débloquées par ce joueur */
 
-            // 28. Aire d'un rectangle
-            () => {
-                const L = Math.floor(Math.random() * 15) + 5;
-                const l = Math.floor(Math.random() * 10) + 3;
-                const answer = L * l;
-                
-                return {
-                    text: `Calculer l'aire d'un rectangle de longueur ${L} m et largeur ${l} m (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `Aire = ${L} × ${l} = ${answer} m²`
-                };
-            },
+/* toast queue */
+let notifiedThisGame = [];
+let toastQueue = [];
+let toastBusy  = false;
 
-            // 29. Aire d'un triangle
-            () => {
-                const b = Math.floor(Math.random() * 12) + 4;
-                const h = Math.floor(Math.random() * 10) + 3;
-                const answer = (b * h) / 2;
-                
-                return {
-                    text: `Calculer l'aire d'un triangle de base ${b} cm et hauteur ${h} cm (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `Aire = (${b} × ${h}) ÷ 2 = ${answer} cm²`
-                };
-            },
+/* ================================================================
+   PSEUDO (localStorage pour persistance)
+================================================================ */
+function getOrCreatePseudo(prenom) {
+    const key = 'pseudo_' + prenom.trim().toLowerCase();
+    let stored = localStorage.getItem(key);
+    if (!stored) {
+        const clean = prenom.trim()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .replace(/[^a-zA-Z]/g, '');
+        const base = clean.length >= 4 ? clean.slice(0, 4) : clean.padEnd(2, 'X');
+        const fmt  = base.charAt(0).toUpperCase() + base.slice(1).toLowerCase();
+        const num  = Math.floor(Math.random() * 900) + 100;
+        stored = fmt + num;
+        localStorage.setItem(key, stored);
+    }
+    return stored;
+}
 
-            // 30. Périmètre d'un cercle
-            () => {
-                const r = Math.floor(Math.random() * 8) + 2;
-                const answer = Math.round(2 * Math.PI * r * 100) / 100;
-                
-                return {
-                    text: `Calculer le périmètre d'un cercle de rayon ${r} cm (arrondi au centième, utiliser π ≈ 3,14, résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.5,
-                    explanation: `Périmètre = 2 × π × ${r} ≈ 2 × 3,14 × ${r} ≈ ${answer} cm`
-                };
-            },
+/* ================================================================
+   FIREBASE — CHARGEMENT
+================================================================ */
+async function loadAllData() {
+    try {
+        const [tSnap, pSnap, mSnap, cSnap] = await Promise.all([
+            db.ref('equipes').once('value'),
+            db.ref('joueurs').once('value'),
+            db.ref('missions').once('value'),
+            db.ref('config').once('value')
+        ]);
+        fbTeams    = tSnap.val() || {};
+        fbPlayers  = pSnap.val() || {};
+        fbMissions = mSnap.val() || {};
+        const cfg  = cSnap.val() || {};
+        stats.lastPlayerScore = cfg.lastScore || 0;
 
-            // 31. Aire d'un disque
-            () => {
-                const r = Math.floor(Math.random() * 6) + 2;
-                const answer = Math.round(Math.PI * r * r * 100) / 100;
-                
-                return {
-                    text: `Calculer l'aire d'un disque de rayon ${r} cm (arrondi au centième, utiliser π ≈ 3,14, résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.5,
-                    explanation: `Aire = π × ${r}² ≈ 3,14 × ${r * r} ≈ ${answer} cm²`
-                };
-            },
+        renderAllLeaderboards();
+        renderMissionsGrid();
+    } catch(e) { console.warn('Firebase load:', e); }
+}
 
-            // 32. Volume d'un pavé droit
-            () => {
-                const L = Math.floor(Math.random() * 8) + 3;
-                const l = Math.floor(Math.random() * 6) + 2;
-                const h = Math.floor(Math.random() * 5) + 2;
-                const answer = L * l * h;
-                
-                return {
-                    text: `Calculer le volume d'un pavé droit de dimensions ${L} cm × ${l} cm × ${h} cm (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `Volume = ${L} × ${l} × ${h} = ${answer} cm³`
-                };
-            },
-
-            // 33. Théorème de Pythagore - Calcul hypoténuse
-            () => {
-                const a = [3, 6, 8, 5][Math.floor(Math.random() * 4)];
-                const b = [4, 8, 6, 12][Math.floor(Math.random() * 4)];
-                const answer = Math.round(Math.sqrt(a * a + b * b) * 100) / 100;
-                
-                return {
-                    text: `Triangle rectangle : côtés ${a} cm et ${b} cm. Calculer l'hypoténuse (arrondi au centième, résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.1,
-                    explanation: `Hypoténuse = √(${a}² + ${b}²) = √(${a * a} + ${b * b}) ≈ ${answer} cm`
-                };
-            },
-
-            // 34. Proportionnalité - Tableau
-            () => {
-                const a = Math.floor(Math.random() * 5) + 2;
-                const b = Math.floor(Math.random() * 8) + 3;
-                const x = Math.floor(Math.random() * 6) + 4;
-                const answer = (b * x) / a;
-                
-                return {
-                    text: `Si ${a} kg coûtent ${b} €, combien coûtent ${x} kg ? (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.1,
-                    explanation: `Prix pour ${x} kg = (${b} × ${x}) ÷ ${a} = ${answer} €`
-                };
-            },
-
-            // 35. Échelle
-            () => {
-                const echelle = [10000, 20000, 50000, 100000][Math.floor(Math.random() * 4)];
-                const distCarte = [2, 3, 4, 5][Math.floor(Math.random() * 4)];
-                const answer = (distCarte * echelle) / 100;
-                
-                return {
-                    text: `Sur une carte à l'échelle 1/${echelle}, ${distCarte} cm représentent quelle distance réelle en mètres ? (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 1,
-                    explanation: `Distance réelle = ${distCarte} × ${echelle} = ${distCarte * echelle} cm = ${answer} m`
-                };
-            },
-
-            // 36. Probabilité simple
-            () => {
-                const total = [6, 8, 10, 12][Math.floor(Math.random() * 4)];
-                const favorable = Math.floor(Math.random() * (total - 2)) + 1;
-                const answer = Math.round((favorable / total) * 1000) / 1000;
-                
-                return {
-                    text: `Il y a ${favorable} boules rouges dans un sac de ${total} boules. Quelle est la probabilité de tirer une rouge ? (arrondi au millième, résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `Probabilité = ${favorable}/${total} = ${answer}`
-                };
-            },
-
-            // 37. Notation scientifique - Conversion
-            () => {
-                const bases = [2.5, 3.2, 4.5, 5.8, 7.3];
-                const base = bases[Math.floor(Math.random() * bases.length)];
-                const exp = Math.floor(Math.random() * 5) + 2;
-                const answer = base * Math.pow(10, exp);
-                
-                return {
-                    text: `Convertir ${base} × 10^${exp} en nombre décimal (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 1,
-                    explanation: `${base} × 10^${exp} = ${answer}`
-                };
-            },
-
-            // 36. Développement double
-            () => {
-                const a = Math.floor(Math.random() * 4) + 2;
-                const b = Math.floor(Math.random() * 4) + 2;
-                const answer = a * a + 2 * a * b + b * b;
-                
-                return {
-                    text: `Développer (${a} + ${b})² (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `(${a} + ${b})² = ${a}² + 2×${a}×${b} + ${b}² = ${a * a} + ${2 * a * b} + ${b * b} = ${answer}`
-                };
-            },
-
-            // 40. Médiane simple
-            () => {
-                const n = Math.random() < 0.5 ? 5 : 7;
-                const numbers = [];
-                for (let i = 0; i < n; i++) {
-                    numbers.push(Math.floor(Math.random() * 20) + 1);
-                }
-                numbers.sort((a, b) => a - b);
-                const answer = numbers[Math.floor(n / 2)];
-                
-                return {
-                    text: `Trouver la médiane de : ${numbers.join(', ')} (résultat sans unité)`,
-                    type: 'numeric',
-                    answer: answer,
-                    tolerance: 0.01,
-                    explanation: `Série ordonnée : ${numbers.join(', ')}. La médiane est ${answer}`
-                };
-            }
-        ];
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
+async function loadPlayerData(pseudo) {
+    try {
+        const snap = await db.ref('joueurs/' + pseudo).once('value');
+        const d = snap.val();
+        if (d) {
+            stats.previousBest = d.meilleurscore || 0;
+            playerMissions = Array.isArray(d.missions) ? d.missions : [];
+            const pbEl = document.getElementById('personal-best');
+            pbEl.classList.add('show');
+            document.getElementById('pb-score').textContent = stats.previousBest + ' pts';
+            document.getElementById('pb-missions').textContent = playerMissions.length + ' mission(s) débloquée(s)';
+        } else {
+            stats.previousBest = 0;
+            playerMissions = [];
+            document.getElementById('personal-best').classList.remove('show');
         }
+        renderMissionsGrid();
+    } catch(e) { console.warn('loadPlayer:', e); }
+}
 
-        function generateQuestions() {
-            questions = [];
-            const usedGenerators = [];
-            
-            // S'assurer d'avoir au moins 15 générateurs différents
-            while (questions.length < 15) {
-                // Créer une copie mélangée des générateurs
-                const availableGenerators = [...questionGenerators];
-                shuffle(availableGenerators);
-                
-                for (const generator of availableGenerators) {
-                    if (questions.length >= 15) break;
-                    
-                    // Générer la question
-                    const question = generator();
-                    
-                    // Vérifier que cette question n'a pas déjà été générée (contenu différent)
-                    const isDuplicate = questions.some(q => q.text === question.text);
-                    
-                    if (!isDuplicate) {
-                        questions.push(question);
-                    }
-                }
-                
-                // Si on n'arrive pas à avoir 15 questions uniques après plusieurs tentatives
-                // On accepte des questions similaires mais avec des valeurs différentes
-                if (questions.length < 15 && usedGenerators.length > 50) {
-                    break;
-                }
-                usedGenerators.push(1);
-            }
-        }
+/* ================================================================
+   FIREBASE — SAUVEGARDE
+================================================================ */
+async function saveGameResult() {
+    const newM = checkAllMissions();
+    const allM = [...new Set([...playerMissions, ...newM])];
+    const newBest = score > stats.previousBest ? score : stats.previousBest;
 
-        async function loadScores() {
-            console.log('=== CHARGEMENT DES SCORES DEPUIS FIREBASE ===');
-            try {
-                // Charger les scores des maisons depuis Firebase
-                const scoresRef = database.ref('houseScores');
-                const snapshot = await scoresRef.once('value');
-                const data = snapshot.val();
-                
-                if (data) {
-                    houseScores = {
-                        phoenix: data.phoenix || 0,
-                        axiome: data.axiome || 0,
-                        nebula: data.nebula || 0,
-                        zenith: data.zenith || 0
-                    };
-                    console.log('✅ Scores chargés depuis Firebase:', houseScores);
-                } else {
-                    console.log('ℹ️ Aucun score dans Firebase, initialisation à 0');
-                    houseScores = { phoenix: 0, axiome: 0, nebula: 0, zenith: 0 };
-                    // Initialiser Firebase avec des scores à 0
-                    await scoresRef.set(houseScores);
-                }
-                
-                console.log('📊 État final houseScores:', JSON.stringify(houseScores));
-                
-                // Attendre un peu que le DOM soit bien chargé
-                await new Promise(resolve => setTimeout(resolve, 50));
-                updateScoreDisplay();
-                updateLiveRanking();  // Mettre à jour le classement en temps réel
-                
-                await loadTopScores();
-            } catch (error) {
-                console.error('❌ Erreur lors du chargement depuis Firebase:', error);
-                // Initialiser à 0 en cas d'erreur
-                houseScores = { phoenix: 0, axiome: 0, nebula: 0, zenith: 0 };
-                updateScoreDisplay();
-                updateLiveRanking();  // Mettre à jour même en cas d'erreur
-            }
-        }
-
-        async function loadTopScores() {
-            console.log('Chargement du top scores depuis Firebase...');
-            try {
-                const topScoresRef = database.ref('topScores');
-                const snapshot = await topScoresRef.once('value');
-                const topScores = snapshot.val() || [];
-                
-                console.log('Top scores chargés depuis Firebase:', topScores);
-                displayTopScores(topScores);
-            } catch (error) {
-                console.error('Erreur lors du chargement des top scores:', error);
-                displayTopScores([]);
-            }
-        }
-
-        function displayTopScores(topScores) {
-            const containers = [
-                document.getElementById('top-scores-list'),
-                document.getElementById('top-scores-list-results')
-            ];
-
-            console.log('Affichage des scores:', topScores);
-
-            if (!topScores || topScores.length === 0) {
-                const emptyHTML = '<div style="text-align: center; color: #718096; padding: 20px; font-size: 0.9em;">Aucun score enregistré<br>Sois le premier à jouer !</div>';
-                containers.forEach(container => {
-                    if (container) container.innerHTML = emptyHTML;
-                });
-                return;
-            }
-
-            const houseIcons = {
-                phoenix: '🔥',
-                axiome: '💎',
-                nebula: '🌌',
-                zenith: '⭐'
-            };
-
-            const html = topScores.map((score, index) => {
-                const rankClass = index < 3 ? `rank-${index + 1}` : '';
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
-                return `
-                    <div class="top-score-item ${rankClass}">
-                        <div class="top-score-rank ${rankClass}">${medal || (index + 1)}</div>
-                        <div class="top-score-name">${score.name}</div>
-                        <div class="top-score-house">${houseIcons[score.house] || '🏠'}</div>
-                        <div class="top-score-points">${score.score} pts</div>
-                    </div>
-                `;
-            }).join('');
-
-            containers.forEach(container => {
-                if (container) {
-                    container.innerHTML = html;
-                    console.log('Container mis à jour:', container.id);
-                }
-            });
-        }
-
-        async function saveTopScore(name, house, score) {
-            console.log(`Sauvegarde du top score dans Firebase: ${name} (${house}) - ${score} pts`);
-            try {
-                const topScoresRef = database.ref('topScores');
-                const snapshot = await topScoresRef.once('value');
-                let topScores = snapshot.val() || [];
-
-                console.log('Scores existants:', topScores);
-
-                topScores.push({ name, house, score, date: Date.now() });
-                topScores.sort((a, b) => b.score - a.score);
-                topScores = topScores.slice(0, 10);
-
-                console.log('Nouveaux top scores:', topScores);
-
-                await topScoresRef.set(topScores);
-                console.log('✅ Top scores sauvegardés dans Firebase');
-                
-                // Recharger immédiatement l'affichage
-                displayTopScores(topScores);
-            } catch (error) {
-                console.error('❌ Erreur de sauvegarde du top score dans Firebase:', error);
-            }
-        }
-
-        async function saveScore(house, points) {
-            console.log(`Sauvegarde de ${points} points pour ${house} dans Firebase`);
-            console.log(`Score actuel de ${house}: ${houseScores[house]}`);
-            houseScores[house] += points;
-            console.log(`Nouveau score de ${house}: ${houseScores[house]}`);
-            
-            try {
-                // Sauvegarder dans Firebase
-                const scoresRef = database.ref('houseScores');
-                await scoresRef.update({
-                    [house]: houseScores[house]
-                });
-                console.log(`✅ Score de ${house} sauvegardé dans Firebase: ${houseScores[house]}`);
-            } catch (error) {
-                console.error('❌ Erreur de sauvegarde du score de maison dans Firebase:', error);
-            }
-            updateScoreDisplay();
-            updateLiveRanking();  // Mettre à jour le classement en temps réel
-        }
-
-        function updateScoreDisplay() {
-            console.log('=== MISE À JOUR AFFICHAGE ===');
-            console.log('Scores à afficher:', JSON.stringify(houseScores));
-            
-            for (const house in houseScores) {
-                // Écran d'accueil
-                const element = document.getElementById(`score-${house}`);
-                if (element) {
-                    element.textContent = `${houseScores[house]} points`;
-                    console.log(`✅ Mis à jour score-${house}: ${houseScores[house]} points`);
-                } else {
-                    console.log(`❌ Élément score-${house} NON TROUVÉ dans le DOM`);
-                }
-                
-                // Écran de résultats
-                const finalElement = document.getElementById(`final-${house}`);
-                if (finalElement) {
-                    finalElement.textContent = houseScores[house];
-                    console.log(`✅ Mis à jour final-${house}: ${houseScores[house]}`);
-                } else {
-                    console.log(`ℹ️ Élément final-${house} non trouvé (normal si pas sur écran résultats)`);
-                }
-            }
-            console.log('=== FIN MISE À JOUR ===');
-        }
-
-        function selectHouse(house) {
-            const nameInput = document.getElementById('player-name');
-            if (!nameInput.value.trim()) {
-                alert('Entre ton prénom d\'abord ! ⚡');
-                nameInput.focus();
-                return;
-            }
-            
-            playerName = nameInput.value.trim();
-            playerHouse = house;
-            startGame();
-        }
-
-        function startGame() {
-            generateQuestions();
-            currentQuestion = 0;
-            score = 0;
-            combo = 0;
-            answers = [];
-            timeRemaining = 120; // Réinitialiser à 120 secondes
-            
-            document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            
-            // Charger les scores des maisons et mettre en surbrillance la maison du joueur
-            loadScores();
-            highlightPlayerHouse();
-            
-            startTime = Date.now();
-            timerInterval = setInterval(updateTimer, 1000);
-            
-            displayQuestion();
-        }
-
-        // Mettre en surbrillance la maison du joueur dans le classement temps réel
-        function highlightPlayerHouse() {
-            const houses = ['phoenix', 'axiome', 'nebula', 'zenith'];
-            houses.forEach(house => {
-                const element = document.getElementById(`mini-${house}`);
-                if (house === playerHouse) {
-                    element.classList.add('player-house');
-                } else {
-                    element.classList.remove('player-house');
-                }
-            });
-        }
-
-        // Mettre à jour le classement en temps réel
-        function updateLiveRanking() {
-            document.getElementById('live-phoenix').textContent = houseScores.phoenix;
-            document.getElementById('live-axiome').textContent = houseScores.axiome;
-            document.getElementById('live-nebula').textContent = houseScores.nebula;
-            document.getElementById('live-zenith').textContent = houseScores.zenith;
-        }
-
-        function updateTimer() {
-            timeRemaining--;
-            
-            const minutes = Math.floor(timeRemaining / 60);
-            const seconds = timeRemaining % 60;
-            const timerElement = document.getElementById('timer');
-            timerElement.textContent = `⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Afficher le bonus de temps disponible
-            const bonusText = document.getElementById('time-bonus-text');
-            if (timeRemaining > 90) {
-                bonusText.innerHTML = '⚡ <span style="color: #10b981;">Bonus rapide : +3 pts</span>';
-            } else if (timeRemaining > 60) {
-                bonusText.innerHTML = '⚡ <span style="color: #3b82f6;">Bonus moyen : +2 pts</span>';
-            } else if (timeRemaining > 30) {
-                bonusText.innerHTML = '⚡ <span style="color: #f59e0b;">Bonus lent : +1 pt</span>';
-            } else {
-                bonusText.innerHTML = '<span style="color: #6b7280;">Aucun bonus temps</span>';
-            }
-            
-            // Changer la couleur quand il reste moins de 30 secondes
-            if (timeRemaining <= 30) {
-                timerElement.style.color = '#ff3366';
-                if (timeRemaining <= 10) {
-                    timerElement.style.animation = 'pulse 0.5s infinite';
-                }
-            }
-            
-            // Temps écoulé
-            if (timeRemaining <= 0) {
-                clearInterval(timerInterval);
-                endGameTimeOut();
-            }
-        }
-
-        async function endGameTimeOut() {
-            // Arrêter le timer
-            clearInterval(timerInterval);
-            
-            console.log('=== FIN PAR TIMEOUT ===');
-            console.log('Score obtenu:', score);
-            console.log('Maison:', playerHouse);
-            console.log('Joueur:', playerName);
-            
-            // Sauvegarder les scores même en cas de timeout
-            await saveScore(playerHouse, score);
-            await saveTopScore(playerName, playerHouse, score);
-            
-            // Attendre un peu pour que les sauvegardes soient terminées
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Recharger les scores
-            await loadScores();
-            
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('results-screen').classList.remove('hidden');
-            
-            document.getElementById('final-score').innerHTML = `
-                ⏰ <strong>Temps écoulé !</strong><br>
-                ${playerName}, tu as gagné <strong>${score} points</strong> pour ${getHouseName(playerHouse)} !<br>
-                <span style="font-size: 0.7em;">Tu as répondu à ${currentQuestion} question(s) sur 15</span>
-            `;
-            
-            const resultsContainer = document.getElementById('results-container');
-            resultsContainer.innerHTML = '';
-            
-            answers.forEach((answer, index) => {
-                const resultDiv = document.createElement('div');
-                resultDiv.className = `result-item ${answer.correct ? 'correct' : 'incorrect'}`;
-                
-                // Affichage du détail des points
-                let pointsDetail = '';
-                if (answer.correct && answer.points > 0) {
-                    pointsDetail = `(+${answer.points} pts`;
-                    if (answer.timeBonus > 0) {
-                        pointsDetail += ` dont ⚡ +${answer.timeBonus} bonus temps`;
-                    }
-                    pointsDetail += ')';
-                }
-                
-                resultDiv.innerHTML = `
-                    <div class="result-question">
-                        ${answer.correct ? '✅' : '❌'} Question ${index + 1} ${pointsDetail}
-                    </div>
-                    <div style="margin: 10px 0;">${questions[index].text}</div>
-                    <div class="result-answer">
-                        Ta réponse : ${answer.userAnswer}<br>
-                        ${answer.explanation}
-                    </div>
-                `;
-                
-                resultsContainer.appendChild(resultDiv);
-            });
-            
-            console.log('=== Scores après timeout ===');
-            console.log('Scores des maisons:', houseScores);
-        }
-
-        function displayQuestion() {
-            const question = questions[currentQuestion];
-            document.getElementById('question-counter').textContent = `Question ${currentQuestion + 1}/15`;
-            document.getElementById('question-text').textContent = question.text;
-            
-            const container = document.getElementById('question-container');
-            container.innerHTML = '';
-            
-            if (question.type === 'mcq') {
-                const optionsDiv = document.createElement('div');
-                optionsDiv.className = 'options';
-                
-                question.options.forEach((option, index) => {
-                    const optionDiv = document.createElement('div');
-                    optionDiv.className = 'option';
-                    optionDiv.textContent = option.text;
-                    optionDiv.onclick = () => selectOption(index);
-                    optionDiv.dataset.index = index;
-                    optionsDiv.appendChild(optionDiv);
-                });
-                
-                container.appendChild(optionsDiv);
-            } else if (question.type === 'numeric') {
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.id = 'numeric-answer';
-                input.placeholder = 'Ta réponse...';
-                input.step = 'any';
-                
-                // Ajouter la validation par touche Entrée
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        nextQuestion();
-                    }
-                });
-                
-                container.appendChild(input);
-                
-                // Focus automatique sur l'input
-                setTimeout(() => input.focus(), 100);
-            }
-            
-            updateComboDisplay();
-        }
-
-        function selectOption(index) {
-            document.querySelectorAll('.option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            const selected = document.querySelector(`.option[data-index="${index}"]`);
-            if (selected) {
-                selected.classList.add('selected');
-            }
-        }
-
-        function nextQuestion() {
-            const question = questions[currentQuestion];
-            let userAnswer;
-            let isCorrect = false;
-            
-            if (question.type === 'mcq') {
-                const selected = document.querySelector('.option.selected');
-                if (!selected) {
-                    alert('Choisis une réponse ! 🎯');
-                    return;
-                }
-                const index = parseInt(selected.dataset.index);
-                userAnswer = question.options[index].text;
-                isCorrect = question.options[index].correct;
-            } else if (question.type === 'numeric') {
-                const input = document.getElementById('numeric-answer');
-                if (!input.value) {
-                    alert('Entre une réponse ! 🎯');
-                    return;
-                }
-                userAnswer = parseFloat(input.value);
-                isCorrect = Math.abs(userAnswer - question.answer) <= question.tolerance;
-            }
-            
-            // Calcul des points avec combo ET bonus de temps
-            let points = 0;
-            let timeBonus = 0;
-            if (isCorrect) {
-                combo++;
-                
-                // Multiplicateur de combo
-                let multiplier = 1;
-                if (combo >= 10) multiplier = 2.5;
-                else if (combo >= 5) multiplier = 2;
-                else if (combo >= 3) multiplier = 1.5;
-                
-                // Points de base avec combo
-                points = Math.round(1 * multiplier);
-                
-                // Bonus de temps (maximum +3 points)
-                // Si temps restant > 90s : +3 pts
-                // Si temps restant > 60s : +2 pts
-                // Si temps restant > 30s : +1 pt
-                // Si temps restant ≤ 30s : 0 pt
-                if (timeRemaining > 90) {
-                    timeBonus = 3;
-                } else if (timeRemaining > 60) {
-                    timeBonus = 2;
-                } else if (timeRemaining > 30) {
-                    timeBonus = 1;
-                }
-                
-                points += timeBonus;
-                score += points;
-            } else {
-                combo = 0;
-            }
-            
-            answers.push({
-                question: question.text,
-                userAnswer: userAnswer,
-                correct: isCorrect,
-                explanation: question.explanation,
-                points: points,
-                timeBonus: timeBonus
-            });
-            
-            currentQuestion++;
-            
-            if (currentQuestion < 15) {
-                displayQuestion();
-            } else {
-                endGame();
-            }
-        }
-
-        function updateComboDisplay() {
-            const comboContainer = document.getElementById('combo-container');
-            const comboText = document.getElementById('combo-text');
-            
-            if (combo >= 3) {
-                comboContainer.classList.remove('hidden');
-                let multiplier = 1;
-                if (combo >= 10) multiplier = 2.5;
-                else if (combo >= 5) multiplier = 2;
-                else if (combo >= 3) multiplier = 1.5;
-                
-                comboText.textContent = `🔥 COMBO ×${multiplier} ! ${combo} bonnes réponses !`;
-            } else {
-                comboContainer.classList.add('hidden');
-            }
-        }
-
-        async function endGame() {
-            clearInterval(timerInterval);
-            
-            console.log('=== FIN DE PARTIE ===');
-            console.log('Score obtenu:', score);
-            console.log('Maison:', playerHouse);
-            console.log('Joueur:', playerName);
-            
-            // Sauvegarder les scores de manière séquentielle
-            await saveScore(playerHouse, score);
-            await saveTopScore(playerName, playerHouse, score);
-            
-            // Attendre un peu pour que les sauvegardes soient terminées
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Recharger les scores pour afficher les nouvelles valeurs
-            await loadScores();
-            
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('results-screen').classList.remove('hidden');
-            
-            const elapsed = 120 - timeRemaining;
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            
-            document.getElementById('final-score').innerHTML = `
-                ${playerName}, tu as gagné <strong>${score} points</strong> pour ${getHouseName(playerHouse)} !<br>
-                <span style="font-size: 0.7em;">Temps : ${minutes}:${seconds.toString().padStart(2, '0')} - Toutes les questions répondues ! 🎉</span>
-            `;
-            
-            const resultsContainer = document.getElementById('results-container');
-            resultsContainer.innerHTML = '';
-            
-            answers.forEach((answer, index) => {
-                const resultDiv = document.createElement('div');
-                resultDiv.className = `result-item ${answer.correct ? 'correct' : 'incorrect'}`;
-                
-                // Affichage du détail des points
-                let pointsDetail = '';
-                if (answer.correct && answer.points > 0) {
-                    pointsDetail = `(+${answer.points} pts`;
-                    if (answer.timeBonus > 0) {
-                        pointsDetail += ` dont ⚡ +${answer.timeBonus} bonus temps`;
-                    }
-                    pointsDetail += ')';
-                }
-                
-                resultDiv.innerHTML = `
-                    <div class="result-question">
-                        ${answer.correct ? '✅' : '❌'} Question ${index + 1} ${pointsDetail}
-                    </div>
-                    <div style="margin: 10px 0;">${questions[index].text}</div>
-                    <div class="result-answer">
-                        Ta réponse : ${answer.userAnswer}<br>
-                        ${answer.explanation}
-                    </div>
-                `;
-                
-                resultsContainer.appendChild(resultDiv);
-            });
-            
-            console.log('=== Scores après partie ===');
-            console.log('Scores des maisons:', houseScores);
-        }
-
-        function getHouseName(house) {
-            const names = {
-                phoenix: '🔥 Phoenix',
-                axiome: '💎 Axiome',
-                nebula: '🌌 Nebula',
-                zenith: '⭐ Zenith'
-            };
-            return names[house];
-        }
-
-        function restartGame() {
-            location.reload();
-        }
-
-        // Initialisation
-        window.addEventListener('DOMContentLoaded', async () => {
-            console.log('=== INITIALISATION DU JEU AVEC FIREBASE ===');
-            await loadScores();
+    try {
+        /* joueur */
+        await db.ref('joueurs/' + playerPseudo).update({
+            nom: playerPseudo, prenom: playerPrenom,
+            equipe: playerTeam, score,
+            meilleurscore: newBest,
+            missions: allM,
+            ts: Date.now()
         });
-    </script>
+        /* missions */
+        await db.ref('missions/' + playerPseudo).set(allM);
+        /* équipe */
+        const curScore   = (fbTeams[playerTeam]?.score || 0) + score;
+        const curPlayers = fbTeams[playerTeam]?.joueurs || [];
+        if (!curPlayers.includes(playerPseudo)) curPlayers.push(playerPseudo);
+        await db.ref('equipes/' + playerTeam).update({ score: curScore, joueurs: curPlayers });
+        /* config — dernier score (pour M16) */
+        await db.ref('config/lastScore').set(score);
+    } catch(e) { console.warn('save error:', e); }
+
+    return { newM, allM, newBest };
+}
+
+/* ================================================================
+   MISSIONS — VÉRIFICATION
+================================================================ */
+function checkAllMissions() {
+    const checks = [
+        () => stats.maxCombo >= 3,
+        () => stats.maxCombo >= 5,
+        () => stats.maxCombo >= 10,
+        () => stats.correctAnswers === 15 && stats.totalAnswered >= 15,
+        () => stats.maxQuick >= 3,
+        () => stats.maxQuick >= 5,
+        () => stats.maxMultiplier >= 2.5,
+        () => stats.maxMultiplier >= 5.0,
+        () => stats.errorsFirst10 === 0 && stats.totalAnswered >= 10,
+        () => stats.correctAnswers === 15,
+        () => stats.timeAt10q <= 80,
+        () => stats.timeAt5q  <= 30,
+        () => score > 50,
+        () => score > 80,
+        () => score > stats.previousBest && stats.previousBest > 0,
+        () => score > stats.lastPlayerScore && stats.lastPlayerScore > 0
+    ];
+    return checks
+        .map((fn, i) => fn() ? i + 1 : null)
+        .filter(id => id !== null && !playerMissions.includes(id));
+}
+
+function checkMissionsRealtime() {
+    /* missions vérifiables en cours de partie */
+    const realtimeChecks = [
+        { id:1,  fn: () => stats.maxCombo >= 3 },
+        { id:2,  fn: () => stats.maxCombo >= 5 },
+        { id:3,  fn: () => stats.maxCombo >= 10 },
+        { id:5,  fn: () => stats.maxQuick >= 3 },
+        { id:6,  fn: () => stats.maxQuick >= 5 },
+        { id:7,  fn: () => stats.maxMultiplier >= 2.5 },
+        { id:8,  fn: () => stats.maxMultiplier >= 5.0 },
+        { id:13, fn: () => score > 50 }
+    ];
+    realtimeChecks.forEach(({ id, fn }) => {
+        if (fn() && !playerMissions.includes(id) && !notifiedThisGame.includes(id)) {
+            notifiedThisGame.push(id);
+            pushToast(id);
+        }
+    });
+}
+
+function updateStatsOnAnswer(correct, timeTaken) {
+    stats.totalAnswered++;
+    if (correct) {
+        stats.correctAnswers++;
+        stats.currentCombo++;
+        stats.maxCombo = Math.max(stats.maxCombo, stats.currentCombo);
+        if (timeTaken < 10) {
+            stats.currentQuick++;
+            stats.maxQuick = Math.max(stats.maxQuick, stats.currentQuick);
+        } else {
+            stats.currentQuick = 0;
+        }
+        const mult = getMultiplier(stats.currentCombo);
+        stats.maxMultiplier = Math.max(stats.maxMultiplier, mult);
+    } else {
+        if (stats.totalAnswered <= 10) stats.errorsFirst10++;
+        stats.currentCombo = 0;
+        stats.currentQuick = 0;
+    }
+    const elapsed = (Date.now() - gameStartTime) / 1000;
+    if (stats.totalAnswered === 5)  stats.timeAt5q  = elapsed;
+    if (stats.totalAnswered === 10) stats.timeAt10q = elapsed;
+    checkMissionsRealtime();
+}
+
+/* ================================================================
+   TOASTS
+================================================================ */
+function pushToast(missionId) {
+    toastQueue.push(MISSIONS[missionId - 1]);
+    if (!toastBusy) nextToast();
+}
+function nextToast() {
+    if (!toastQueue.length) { toastBusy = false; return; }
+    toastBusy = true;
+    const m = toastQueue.shift();
+    const el = document.createElement('div');
+    el.className = 'mission-toast';
+    el.innerHTML = `<div class="toast-icon">${m.icon}</div>
+        <div><div class="toast-title">🎯 Mission débloquée !</div>
+        <div class="toast-sub">${m.name}</div></div>`;
+    document.body.appendChild(el);
+    setTimeout(() => {
+        el.style.transition = 'opacity .3s';
+        el.style.opacity = '0';
+        setTimeout(() => { el.remove(); nextToast(); }, 320);
+    }, 2600);
+}
+
+/* ================================================================
+   UI — CLASSEMENTS
+================================================================ */
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', ['teams','players','missions'][i] === tab);
+    });
+    ['teams','players','missions'].forEach(t => {
+        document.getElementById('pane-' + t).classList.toggle('active', t === tab);
+    });
+}
+
+function renderAllLeaderboards() {
+    renderTeams();
+    renderPlayers();
+    renderMissionsLB();
+}
+
+function renderTeams() {
+    const rows = Object.entries(TEAMS).map(([id, info]) => ({
+        id, ...info,
+        score:   fbTeams[id]?.score   || 0,
+        players: (fbTeams[id]?.joueurs || []).length
+    })).sort((a, b) => b.score - a.score);
+
+    document.getElementById('lb-teams').innerHTML = rows.map((t, i) => `
+        <div class="team-rank-row" style="border-color:${t.color}33; background:${t.color}08">
+            <div class="trr-icon">${t.icon}</div>
+            <div class="trr-info">
+                <div class="trr-name" style="color:${t.color}">${t.name}</div>
+                <div class="trr-players">${t.players} joueur(s)</div>
+            </div>
+            <div class="trr-right">
+                <div class="trr-score">${t.score}</div>
+                <div class="trr-pos">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
+            </div>
+        </div>`).join('') || '<div style="color:var(--dim);font-size:.82em;padding:14px 0;text-align:center">Aucune équipe n\'a encore joué.</div>';
+}
+
+function renderPlayers() {
+    const rows = Object.values(fbPlayers)
+        .map(p => ({ pseudo: p.nom, prenom: p.prenom || p.nom, equipe: p.equipe, best: p.meilleurscore || 0 }))
+        .sort((a, b) => b.best - a.best).slice(0, 15);
+
+    if (!rows.length) {
+        document.getElementById('lb-players').innerHTML = '<div style="color:var(--dim);font-size:.82em;padding:14px 0;text-align:center">Aucun joueur encore.</div>';
+        return;
+    }
+    document.getElementById('lb-players').innerHTML = rows.map((p, i) => {
+        const ti = TEAMS[p.equipe] || { icon: '?', color: '#888' };
+        const posClass = i===0?'g':i===1?'s':i===2?'b':'';
+        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+        return `<div class="player-rank-row">
+            <div class="prr-pos ${posClass}">${medal}</div>
+            <div class="prr-name">${ti.icon} ${p.prenom}</div>
+            <div class="prr-pseudo">${p.pseudo}</div>
+            <div class="prr-score">${p.best} pts</div>
+        </div>`;
+    }).join('');
+}
+
+function renderMissionsLB() {
+    const rows = Object.entries(fbMissions)
+        .map(([pseudo, ms]) => ({
+            pseudo,
+            prenom: fbPlayers[pseudo]?.prenom || pseudo,
+            equipe: fbPlayers[pseudo]?.equipe || '',
+            count: (ms || []).length
+        }))
+        .sort((a, b) => b.count - a.count).slice(0, 10);
+
+    if (!rows.length) {
+        document.getElementById('lb-missions').innerHTML = '<div style="color:var(--dim);font-size:.82em;padding:14px 0;text-align:center">Aucune mission accomplie.</div>';
+        return;
+    }
+    document.getElementById('lb-missions').innerHTML = rows.map((p, i) => {
+        const ti = TEAMS[p.equipe] || { icon: '?', color: '#888' };
+        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+        return `<div class="player-rank-row">
+            <div class="prr-pos ${i===0?'g':i===1?'s':i===2?'b':''}">${medal}</div>
+            <div class="prr-name">${ti.icon} ${p.prenom}</div>
+            <div class="prr-pseudo">${p.pseudo}</div>
+            <div class="prr-score">${p.count}/16 🎯</div>
+        </div>`;
+    }).join('');
+}
+
+/* ================================================================
+   UI — GRILLE MISSIONS
+================================================================ */
+function renderMissionsGrid() {
+    document.getElementById('missions-grid').innerHTML = MISSIONS.map(m => `
+        <div class="mission-vignette ${playerMissions.includes(m.id) ? 'done' : ''}" data-tip="${m.name}">
+            <span class="m-id">${m.id}</span>
+            <span class="m-icon">${m.icon}</span>
+        </div>`).join('');
+}
+
+/* ================================================================
+   SETUP JOUEUR
+================================================================ */
+document.getElementById('inp-prenom').addEventListener('input', function () {
+    const val = this.value.trim();
+    if (val.length >= 2) {
+        playerPseudo = getOrCreatePseudo(val);
+        playerPrenom = val;
+        document.getElementById('pseudo-row').innerHTML =
+            `<span style="color:var(--dim);font-size:.82em;">Ton pseudo :</span>
+             <span class="pseudo-tag">${playerPseudo}</span>`;
+        loadPlayerData(playerPseudo);
+    } else {
+        document.getElementById('pseudo-row').innerHTML =
+            '<span style="color:var(--dim);font-size:.88em;">Ton pseudo apparaîtra ici…</span>';
+        document.getElementById('personal-best').classList.remove('show');
+        playerMissions = [];
+        renderMissionsGrid();
+    }
+    checkStart();
+});
+
+function selectTeam(id) {
+    document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector(`.team-card[data-t="${id}"]`).classList.add('selected');
+    playerTeam = id;
+    checkStart();
+}
+
+function checkStart() {
+    const ok = document.getElementById('inp-prenom').value.trim().length >= 2 && playerTeam;
+    document.getElementById('btn-start').disabled = !ok;
+}
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+/* ================================================================
+   JEU — DÉMARRAGE
+================================================================ */
+function startGame() {
+    resetStats(stats.previousBest, stats.lastPlayerScore);
+    notifiedThisGame = [...playerMissions];
+    score = 0;
+    currentQuestion = 0;
+    answers = [];
+    timeRemaining = 120;
+    gameStartTime = Date.now();
+
+    generateQuestions();
+
+    const team = TEAMS[playerTeam];
+    document.getElementById('hud-icon').textContent  = team.icon;
+    document.getElementById('hud-tname').textContent = team.name;
+    document.getElementById('hud-tname').style.color = team.color;
+    document.getElementById('hud-pseudo').textContent = playerPseudo;
+    document.getElementById('hud-score').textContent  = '0';
+
+    buildLiveTeams();
+    updateLiveTeams();
+
+    showScreen('game-screen');
+    timerInterval = setInterval(tickTimer, 1000);
+    displayQuestion();
+}
+
+/* ================================================================
+   JEU — TIMER
+================================================================ */
+function tickTimer() {
+    timeRemaining--;
+    const m = Math.floor(timeRemaining / 60);
+    const s = timeRemaining % 60;
+    const el = document.getElementById('hud-timer');
+    el.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+    el.className = 'hud-timer' + (timeRemaining <= 10 ? ' danger' : timeRemaining <= 30 ? ' warn' : '');
+
+    const bEl = document.getElementById('q-bonus');
+    if      (timeRemaining > 90) bEl.innerHTML = '⚡ <span style="color:#10b981">Bonus +3 pts</span>';
+    else if (timeRemaining > 60) bEl.innerHTML = '⚡ <span style="color:#3b82f6">Bonus +2 pts</span>';
+    else if (timeRemaining > 30) bEl.innerHTML = '⚡ <span style="color:#f59e0b">Bonus +1 pt</span>';
+    else                         bEl.innerHTML = '<span style="color:var(--dim)">Aucun bonus temps</span>';
+
+    if (timeRemaining <= 0) { clearInterval(timerInterval); endGame(true); }
+}
+
+function getTimeBonus() {
+    if (timeRemaining > 90) return 3;
+    if (timeRemaining > 60) return 2;
+    if (timeRemaining > 30) return 1;
+    return 0;
+}
+
+/* ================================================================
+   JEU — LIVE TEAMS
+================================================================ */
+function buildLiveTeams() {
+    document.getElementById('live-teams').innerHTML = Object.entries(TEAMS).map(([id, info]) => `
+        <div class="live-team" id="lt-${id}" style="border-color:${info.color}33">
+            <div class="lt-icon">${info.icon}</div>
+            <div class="lt-name">${info.short}</div>
+            <div class="lt-score" id="lts-${id}">${fbTeams[id]?.score || 0}</div>
+        </div>`).join('');
+}
+
+function updateLiveTeams() {
+    Object.entries(TEAMS).forEach(([id, info]) => {
+        const scoreEl = document.getElementById('lts-' + id);
+        if (scoreEl) scoreEl.textContent = fbTeams[id]?.score || 0;
+        const card = document.getElementById('lt-' + id);
+        if (card && id === playerTeam) {
+            card.style.borderColor = info.color;
+            card.style.boxShadow   = `0 0 12px ${info.color}44`;
+            card.style.background  = info.color + '11';
+        }
+    });
+}
+
+/* ================================================================
+   JEU — AFFICHER QUESTION
+================================================================ */
+function displayQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById('q-counter').textContent = `Question ${currentQuestion + 1}/15`;
+    document.getElementById('q-text').innerHTML = q.text;
+
+    const cont = document.getElementById('q-container');
+    cont.innerHTML = '';
+
+    if (q.type === 'mcq') {
+        const wrap = document.createElement('div');
+        wrap.className = 'options';
+        q.options.forEach((opt, i) => {
+            const d = document.createElement('div');
+            d.className = 'option';
+            d.innerHTML = opt.text;
+            d.dataset.idx = i;
+            d.onclick = () => {
+                document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+                d.classList.add('selected');
+            };
+            wrap.appendChild(d);
+        });
+        cont.appendChild(wrap);
+    } else {
+        const inp = document.createElement('input');
+        inp.type = 'number'; inp.step = 'any';
+        inp.className = 'numeric-input';
+        inp.id = 'num-ans';
+        inp.placeholder = 'Ta réponse…';
+        inp.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); nextQuestion(); } });
+        cont.appendChild(inp);
+        setTimeout(() => inp.focus(), 80);
+    }
+
+    questionStartTime = Date.now();
+    updateComboDisplay();
+}
+
+function updateComboDisplay() {
+    const mult = getMultiplier(stats.currentCombo);
+    const el = document.getElementById('hud-combo');
+    el.textContent = `Combo ×${mult.toFixed(1).replace('.', ',')}`;
+    el.className = 'hud-combo' +
+        (mult >= 5.0 ? ' c4' : mult >= 2.5 ? ' c3' : mult >= 2.0 ? ' c2' : mult >= 1.5 ? ' c1' : '');
+}
+
+/* ================================================================
+   JEU — VALIDER RÉPONSE
+================================================================ */
+function nextQuestion() {
+    const q = questions[currentQuestion];
+    let userAnswer, correct = false;
+
+    if (q.type === 'mcq') {
+        const sel = document.querySelector('.option.selected');
+        if (!sel) { alert('Choisis une réponse !'); return; }
+        const idx = parseInt(sel.dataset.idx);
+        userAnswer = q.options[idx].text;
+        correct    = q.options[idx].correct;
+    } else {
+        const inp = document.getElementById('num-ans');
+        if (!inp || inp.value === '') { alert('Entre ta réponse !'); return; }
+        userAnswer = inp.value;
+        correct = Math.abs(parseFloat(inp.value.replace(',', '.')) - q.answer) <= (q.tolerance || 0.01);
+    }
+
+    const timeTaken = (Date.now() - questionStartTime) / 1000;
+
+    /* calcul points AVANT mise à jour du combo */
+    let pts = 0, timeBonus = 0;
+    if (correct) {
+        const mult = getMultiplier(stats.currentCombo);
+        timeBonus = getTimeBonus();
+        pts = Math.round(5 * mult) + timeBonus;
+        score += pts;
+    }
+
+    /* mise à jour stats */
+    updateStatsOnAnswer(correct, timeTaken);
+
+    document.getElementById('hud-score').textContent = score;
+    answers.push({ correct, userAnswer, pts, timeBonus, text: q.text, explanation: q.explanation });
+
+    updateComboDisplay();
+    updateLiveTeams();
+
+    currentQuestion++;
+    if (currentQuestion >= 15) { clearInterval(timerInterval); endGame(false); }
+    else displayQuestion();
+}
+
+/* ================================================================
+   JEU — FIN
+================================================================ */
+async function endGame(timeout) {
+    clearInterval(timerInterval);
+    const { newM, allM, newBest } = await saveGameResult();
+
+    /* rafraîchir le cache local */
+    await loadAllData();
+    playerMissions = allM;
+
+    showResults(newM, timeout, newBest);
+}
+
+function showResults(newM, timeout, newBest) {
+    const team = TEAMS[playerTeam];
+    document.getElementById('res-title').textContent    = timeout ? '⏰ Temps écoulé !' : '🏁 Résultats';
+    document.getElementById('res-subtitle').textContent = `${playerPrenom} (${playerPseudo}) · ${team.icon} ${team.name}`;
+
+    document.getElementById('rs-score').textContent   = score;
+    document.getElementById('rs-correct').textContent = stats.correctAnswers + '/15';
+    document.getElementById('rs-combo').textContent   = stats.maxCombo;
+    document.getElementById('rs-missions').textContent = newM.length > 0 ? '+' + newM.length : '0';
+
+    /* missions débloquées */
+    const ul = document.getElementById('unlocked-list');
+    if (newM.length > 0) {
+        ul.innerHTML = newM.map(id => {
+            const m = MISSIONS[id - 1];
+            return `<div class="unlocked-badge new-badge">${m.icon} ${m.name}</div>`;
+        }).join('');
+    } else {
+        ul.innerHTML = '<span style="color:var(--dim);font-size:.85em;">Aucune nouvelle mission cette partie.</span>';
+    }
+
+    /* détail réponses */
+    document.getElementById('answers-list').innerHTML = answers.map((a, i) => `
+        <div class="result-item ${a.correct ? 'ok' : 'ko'}">
+            <div class="ri-title">${a.correct ? '✅' : '❌'} Question ${i + 1}${a.correct ? ` (+${a.pts} pts)` : ''}</div>
+            <div style="margin:5px 0;font-size:.9em">${a.text}</div>
+            <div class="ri-expl">Ta réponse : ${a.userAnswer} — ${a.explanation}</div>
+        </div>`).join('');
+
+    showScreen('results-screen');
+}
+
+function goHome() {
+    loadAllData();
+    showScreen('welcome-screen');
+    document.getElementById('inp-prenom').value = '';
+    document.getElementById('pseudo-row').innerHTML =
+        '<span style="color:var(--dim);font-size:.88em;">Ton pseudo apparaîtra ici…</span>';
+    document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('personal-best').classList.remove('show');
+    playerTeam = ''; playerPseudo = ''; playerPrenom = '';
+    playerMissions = [];
+    renderMissionsGrid();
+    document.getElementById('btn-start').disabled = true;
+}
+
+/* ================================================================
+   GÉNÉRATEURS DE QUESTIONS (39 générateurs, conservés à l'identique)
+================================================================ */
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+const questionGenerators = [
+    // 1. Pourcentages - Augmenter
+    () => {
+        const percentage = Math.floor(Math.random() * 29) + 2;
+        const correctMultiplier = 1 + percentage / 100;
+        const options = [
+            { text: `× ${correctMultiplier}`, correct: true },
+            { text: `× ${percentage / 100}`, correct: false },
+            { text: `× ${1 - percentage / 100}`, correct: false },
+            { text: `+ ${percentage}`, correct: false }
+        ];
+        shuffle(options);
+        return {
+            text: `Augmenter de ${percentage}% revient à effectuer l'opération :`,
+            type: 'mcq', options,
+            explanation: `100% + ${percentage}% = ${100 + percentage}%, soit ${correctMultiplier}`
+        };
+    },
+
+    // 2. Pourcentages - Réduire
+    () => {
+        const percentage = [5, 10, 15, 20, 25, 30][Math.floor(Math.random() * 6)];
+        const correctMultiplier = 1 - percentage / 100;
+        const options = [
+            { text: `× ${correctMultiplier}`, correct: true },
+            { text: `× ${percentage / 100}`, correct: false },
+            { text: `× ${1 + percentage / 100}`, correct: false },
+            { text: `− ${percentage}`, correct: false }
+        ];
+        shuffle(options);
+        return {
+            text: `Réduire de ${percentage}% revient à effectuer l'opération :`,
+            type: 'mcq', options,
+            explanation: `100% − ${percentage}% = ${100 - percentage}%, soit ${correctMultiplier}`
+        };
+    },
+
+    // 3. Calcul de fraction d'une quantité
+    () => {
+        const numerators   = [2, 3, 4, 5, 7, 3, 2];
+        const denominators = [5, 4, 5, 8, 10, 7, 3];
+        const idx = Math.floor(Math.random() * numerators.length);
+        const num = numerators[idx], den = denominators[idx];
+        const quantity = den * (Math.floor(Math.random() * 15) + 5);
+        const answer = (num * quantity) / den;
+        return {
+            text: `Calculer ${num}/${den} de ${quantity} (résultat sans unité)`,
+            type: 'numeric', answer, tolerance: 0.01,
+            explanation: `${quantity} × ${num}/${den} = ${quantity} ÷ ${den} × ${num} = ${answer}`
+        };
+    },
+
+    // 4. Évaluation de fonction affine
+    () => {
+        let a = Math.floor(Math.random() * 8) - 4;
+        if (a === 0) a = Math.random() < 0.5 ? 1 : -1;
+        const b = Math.floor(Math.random() * 10) - 5;
+        const x = Math.floor(Math.random() * 20) - 10;
+        const answer = a * x + b;
+        const fDisp = b === 0 ? `${a}x` : `${a}x ${b >= 0 ? '+' : ''} ${b}`;
+        const cDisp = b === 0 ? `${a} × ${x}` : `${a} × ${x} ${b >= 0 ? '+' : ''} ${b}`;
+        const sDisp = b === 0 ? `${a * x}` : `${a * x} ${b >= 0 ? '+' : ''} ${b}`;
+        return {
+            text: `La fonction f est définie par f(x) = ${fDisp}. Calculer f(${x}) (résultat sans unité)`,
+            type: 'numeric', answer, tolerance: 0.01,
+            explanation: `f(${x}) = ${cDisp} = ${sDisp} = ${answer}`
+        };
+    },
+
+    // 5. Multiplication par nombre décimal
+    () => {
+        const base = [100, 200, 300, 400, 500, 600][Math.floor(Math.random() * 6)];
+        const mult = [0.25, 0.5, 0.75][Math.floor(Math.random() * 3)];
+        const answer = base * mult;
+        return {
+            text: `Calculer ${base} × ${mult.toString().replace('.', ',')} (résultat sans unité)`,
+            type: 'numeric', answer, tolerance: 0.01,
+            explanation: `${base} × ${mult.toString().replace('.', ',')} = ${answer}`
+        };
+    },
+
+    // 6. Nombres relatifs - Addition
+    () => {
+        const a = Math.floor(Math.random() * 20) - 10;
+        const b = Math.floor(Math.random() * 20) - 10;
+        const bD = b < 0 ? `(${b})` : b;
+        return {
+            text: `Calculer : ${a} + ${bD} (résultat sans unité)`,
+            type: 'numeric', answer: a + b, tolerance: 0.01,
+            explanation: `${a} + ${bD} = ${a + b}`
+        };
+    },
+
+    // 7. Nombres relatifs - Soustraction
+    () => {
+        const a = Math.floor(Math.random() * 20) - 10;
+        const b = Math.floor(Math.random() * 20) - 10;
+        const bD = b < 0 ? `(${b})` : b;
+        return {
+            text: `Calculer : ${a} − ${bD} (résultat sans unité)`,
+            type: 'numeric', answer: a - b, tolerance: 0.01,
+            explanation: `${a} − ${bD} = ${a - b}`
+        };
+    },
+
+    // 8. Nombres relatifs - Multiplication
+    () => {
+        const a = Math.floor(Math.random() * 10) - 5;
+        const b = Math.floor(Math.random() * 10) - 5;
+        if (a === 0 || b === 0) return questionGenerators[7]();
+        const aD = a < 0 ? `(${a})` : a;
+        const bD = b < 0 ? `(${b})` : b;
+        return {
+            text: `Calculer : ${aD} × ${bD} (résultat sans unité)`,
+            type: 'numeric', answer: a * b, tolerance: 0.01,
+            explanation: `${aD} × ${bD} = ${a * b}`
+        };
+    },
+
+    // 9. Équation simple
+    () => {
+        let a = Math.floor(Math.random() * 5) + 2;
+        let b = Math.floor(Math.random() * 10) - 5;
+        if (b === 0) b = Math.random() < 0.5 ? 1 : -1;
+        const c = Math.floor(Math.random() * 20) - 10;
+        const answer = (c - b) / a;
+        return {
+            text: `Résoudre l'équation : ${a}x ${b >= 0 ? '+' : ''} ${b} = ${c} (résultat sans unité)`,
+            type: 'numeric', answer, tolerance: 0.01,
+            explanation: `${a}x = ${c} − (${b}) = ${c - b}, donc x = ${c - b}/${a} = ${answer.toFixed(2)}`
+        };
+    },
+
+    // 10. Fonction polynomiale
+    () => {
+        let a = Math.floor(Math.random() * 5) + 1;
+        let b = Math.floor(Math.random() * 10) - 5;
+        let c = Math.floor(Math.random() * 10) - 5;
+        if (b === 0) b = Math.random() < 0.5 ? 1 : -1;
+        if (c === 0) c = Math.random() < 0.5 ? 1 : -1;
+        const x = Math.floor(Math.random() * 5) + 1;
+        const answer = a * x * x + b * x + c;
+        return {
+            text: `La fonction f est définie par f(x) = ${a}x² ${b >= 0 ? '+' : ''} ${b}x ${c >= 0 ? '+' : ''} ${c}. Calculer f(${x}) (résultat sans unité)`,
+            type: 'numeric', answer, tolerance: 0.01,
+            explanation: `f(${x}) = ${a}×${x}² ${b >= 0 ? '+' : ''} ${b}×${x} ${c >= 0 ? '+' : ''} ${c} = ${a*x*x} ${b >= 0 ? '+' : ''} ${b*x} ${c >= 0 ? '+' : ''} ${c} = ${answer}`
+        };
+    },
+
+    // 11. Calcul de pourcentage d'une quantité
+    () => {
+        const percentage = [10, 20, 25, 50, 15, 30][Math.floor(Math.random() * 6)];
+        const amount = Math.floor(Math.random() * 200) + 100;
+        const answer = (amount * percentage) / 100;
+        return {
+            text: `Calculer ${percentage}% de ${amount} (résultat sans unité)`,
+            type: 'numeric', answer, tolerance: 0.01,
+            explanation: `${amount} × ${percentage}/100 = ${amount} × ${percentage / 100} = ${answer}`
+        };
+    },
+
+    // 12. Développement simple
+    () => {
+        let a = Math.floor(Math.random() * 5) + 2;
+        let b = Math.floor(Math.random() * 10) - 5;
+        let c = Math.floor(Math.random() * 10) - 5;
+        if (b === 0) b = Math.random() < 0.5 ? 2 : -2;
+        if (c === 0) c = Math.random() < 0.5 ? 3 : -3;
+        const options = [
+            { text: `${a*b}x ${a*c >= 0 ? '+' : ''} ${a*c}`, correct: true },
+            { text: `${a}x² ${b+c >= 0 ? '+' : ''} ${b+c}`, correct: false },
+            { text: `${a*b + a*c}x`, correct: false },
+            { text: `${a}x ${b*c >= 0 ? '+' : ''} ${b*c}`, correct: false }
+        ];
+        shuffle(options);
+        return {
+            text: `Développer : ${a} × (${b}x ${c >= 0 ? '+' : ''} ${c})`,
+            type: 'mcq', options,
+            explanation: `${a} × (${b}x ${c >= 0 ? '+' : ''} ${c}) = ${a} × ${b}x + ${a} × (${c}) = ${a*b}x ${a*c >= 0 ? '+' : ''} ${a*c}`
+        };
+    },
+
+    // 13. Priorités opératoires
+    () => {
+        const a = Math.floor(Math.random() * 10) + 1;
+        const b = Math.floor(Math.random() * 10) + 1;
+        const c = Math.floor(Math.random() * 10) + 1;
+        const d = Math.floor(Math.random() * 10) + 1;
+        return {
+            text: `Calculer : ${a} + ${b} × ${c} + ${d} (résultat sans unité)`,
+            type: 'numeric', answer: a + b * c + d, tolerance: 0.01,
+            explanation: `${a} + ${b} × ${c} + ${d} = ${a} + ${b*c} + ${d} = ${a + b*c + d} (on multiplie d'abord)`
+        };
+    },
+
+    // 14. Puissances
+    () => {
+        const base = [2, 3, 4, 5, 10][Math.floor(Math.random() * 5)];
+        const exp  = [2, 3][Math.floor(Math.random() * 2)];
+        const answer = Math.pow(base, exp);
+        return {
+            text: `Calculer : ${base}<sup>${exp}</sup> (résultat sans unité)`,
+            type: 'numeric', answer, tolerance: 0.01,
+            explanation: `${base}<sup>${exp}</sup> = ${base}${exp > 1 ? ' × ' + base : ''}${exp > 2 ? ' × ' + base : ''} = ${answer}`
+        };
+    },
+
+    // 15. Conversion longueur
+    () => {
+        const types = [
+            () => { const km = (Math.floor(Math.random()*89)+1)/10; return { question:`${km.toString().replace('.',',')} km en mètres`, answer:km*1000, expl:`${km.toString().replace('.',',')} km = ${km*1000} m` }; },
+            () => { const cm = (Math.floor(Math.random()*71)+10)*10; return { question:`${cm} cm en mètres`, answer:cm/100, expl:`${cm} cm = ${cm/100} m` }; },
+            () => { const m = (Math.floor(Math.random()*158)+30)*40; return { question:`${m} m en km`, answer:m/1000, expl:`${m} m = ${(m/1000).toString().replace('.',',')} km` }; },
+            () => { const mm = (Math.floor(Math.random()*61)+10)*10; return { question:`${mm} mm en cm`, answer:mm/10, expl:`${mm} mm = ${mm/10} cm` }; }
+        ];
+        const cv = types[Math.floor(Math.random()*types.length)]();
+        return { text:`Convertir ${cv.question} (résultat sans unité)`, type:'numeric', answer:cv.answer, tolerance:0.01, explanation:cv.expl };
+    },
+
+    // 16. Conversion temps
+    () => {
+        const types = [
+            () => { const h=Math.floor(Math.random()*5)+1; return {question:`${h} heure${h>1?'s':''} en minutes`,answer:h*60,expl:`${h} h = ${h*60} min`}; },
+            () => { const h=(Math.floor(Math.random()*4)+1)-0.5; return {question:`${h.toString().replace('.',',')} heures en minutes`,answer:h*60,expl:`${h.toString().replace('.',',')} h = ${h*60} min`}; },
+            () => { const min=(Math.floor(Math.random()*5)+1)*60; return {question:`${min} minutes en heures`,answer:min/60,expl:`${min} min = ${min/60} h`}; },
+            () => { const min=(Math.floor(Math.random()*4)+1)*60-30; return {question:`${min} minutes en heures`,answer:min/60,expl:`${min} min = ${(min/60).toString().replace('.',',')} h`}; },
+            () => { const s=(Math.floor(Math.random()*6)+1)*60; return {question:`${s} secondes en minutes`,answer:s/60,expl:`${s} s = ${s/60} min`}; },
+            () => { const min=Math.floor(Math.random()*5)+1; return {question:`${min} minute${min>1?'s':''} en secondes`,answer:min*60,expl:`${min} min = ${min*60} s`}; }
+        ];
+        const cv = types[Math.floor(Math.random()*types.length)]();
+        return { text:`Convertir ${cv.question} (résultat sans unité)`, type:'numeric', answer:cv.answer, tolerance:0.01, explanation:cv.expl };
+    },
+
+    // 17. Moyenne arithmétique
+    () => {
+        const n = Math.floor(Math.random()*3)+3;
+        const nums = Array.from({length:n}, ()=>Math.floor(Math.random()*20)+1);
+        const sum = nums.reduce((a,b)=>a+b,0);
+        const answer = Math.round((sum/n)*100)/100;
+        return {
+            text: `Calculer la moyenne de : ${nums.join(', ')} (arrondi au centième, résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.02,
+            explanation:`(${nums.join(' + ')}) ÷ ${n} = ${sum} ÷ ${n} = ${answer}`
+        };
+    },
+
+    // 18. Appartenance à une droite
+    () => {
+        let a = Math.floor(Math.random()*5)+1;
+        if (Math.random()<0.3) a = Math.random()<0.5?1:-1;
+        let b = Math.floor(Math.random()*10)-5;
+        if (b===0) b = Math.random()<0.5?1:-1;
+        const x = Math.floor(Math.random()*10)-5;
+        const yC = a*x+b;
+        const yW = yC+(Math.random()<0.5?3:-3);
+        const correct = Math.random()<0.5;
+        const y = correct?yC:yW;
+        const aD = a===1?'x':a===-1?'−x':`${a}x`;
+        const options = [
+            { text:'Vrai', correct },
+            { text:'Faux', correct:!correct }
+        ];
+        return {
+            text:`La droite (D) a pour équation y = ${aD} ${b>=0?'+':'−'} ${Math.abs(b)}. Le point A(${x} ; ${y}) appartient à (D).`,
+            type:'mcq', options,
+            explanation:`${a===1?'':a===-1?'−':a} × ${x} ${b>=0?'+':'−'} ${Math.abs(b)} = ${yC}. ${correct?'Le point appartient bien à la droite.':`Le point n'appartient pas à la droite car ${y} ≠ ${yC}.`}`
+        };
+    },
+
+    // 19. Arrondi au centième
+    () => {
+        const num = (Math.random()*100+10).toFixed(4);
+        const answer = parseFloat(parseFloat(num).toFixed(2));
+        return { text:`Arrondir ${num} au centième (résultat sans unité)`, type:'numeric', answer, tolerance:0.001, explanation:`${num} ≈ ${answer} au centième près` };
+    },
+
+    // 20. Arrondi à l'unité
+    () => {
+        const num = (Math.random()*100+50).toFixed(2);
+        const answer = Math.round(parseFloat(num));
+        return { text:`Arrondir ${num} à l'unité (résultat sans unité)`, type:'numeric', answer, tolerance:0.001, explanation:`${num} ≈ ${answer} à l'unité près` };
+    },
+
+    // 21. Proportionnalité - Prix unitaire
+    () => {
+        const qty = Math.floor(Math.random()*10)+3;
+        const uprice = Math.floor(Math.random()*20)+10;
+        const total = uprice*qty;
+        return {
+            text:`${qty} articles coûtent ${total} €. Quel est le prix d'un article ? (résultat sans unité)`,
+            type:'numeric', answer:uprice, tolerance:0.01,
+            explanation:`Prix unitaire = ${total} ÷ ${qty} = ${uprice} €`
+        };
+    },
+
+    // 22. Taux d'évolution
+    () => {
+        const vi = (Math.floor(Math.random()*51)+50)*10;
+        const vr = (Math.floor(Math.random()*21)-10)*10;
+        const vf = vi+vr;
+        const answer = Math.round(((vf-vi)/vi)*10000)/100;
+        return {
+            text:`Calculer le taux d'évolution de ${vi} à ${vf} (réponse en pourcentage, arrondi au centième, résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.01,
+            explanation:`((${vf} − ${vi}) ÷ ${vi}) × 100 = ${answer}%`
+        };
+    },
+
+    // 23. Vitesse moyenne
+    () => {
+        const dist = [120,150,200,250,300][Math.floor(Math.random()*5)];
+        const time = [2,2.5,3,4][Math.floor(Math.random()*4)];
+        return {
+            text:`Calculer la vitesse moyenne pour parcourir ${dist} km en ${time} h (résultat sans unité)`,
+            type:'numeric', answer:dist/time, tolerance:0.1,
+            explanation:`Vitesse = ${dist} ÷ ${time} = ${dist/time} km/h`
+        };
+    },
+
+    // 24. TVA - Calcul TTC
+    () => {
+        const ht = Math.floor(Math.random()*200)+100;
+        const tva = [5.5,10,20][Math.floor(Math.random()*3)];
+        const answer = Math.round(ht*(1+tva/100)*100)/100;
+        return {
+            text:`Prix HT = ${ht} €, TVA = ${tva}%. Calculer le prix TTC (résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.1,
+            explanation:`Prix TTC = ${ht} × ${1+tva/100} = ${answer} €`
+        };
+    },
+
+    // 25. Factorisation simple
+    () => {
+        const a = Math.floor(Math.random()*4)+2;
+        const b = Math.floor(Math.random()*8)+1;
+        const options = [
+            { text:`${a} × (x + ${b})`, correct:true },
+            { text:`${a}x + ${b}`, correct:false },
+            { text:`${a} × x + ${a} × ${b}`, correct:false },
+            { text:`(${a} + x) × ${b}`, correct:false }
+        ];
+        shuffle(options);
+        return {
+            text:`Factoriser : ${a}x + ${a*b}`,
+            type:'mcq', options,
+            explanation:`${a}x + ${a*b} = ${a} × x + ${a} × ${b} = ${a} × (x + ${b})`
+        };
+    },
+
+    // 26. Périmètre d'un rectangle
+    () => {
+        const L = Math.floor(Math.random()*15)+5;
+        const l = Math.floor(Math.random()*10)+3;
+        return {
+            text:`Calculer le périmètre d'un rectangle de longueur ${L} cm et largeur ${l} cm (résultat sans unité)`,
+            type:'numeric', answer:2*(L+l), tolerance:0.01,
+            explanation:`Périmètre = 2 × (${L} + ${l}) = 2 × ${L+l} = ${2*(L+l)} cm`
+        };
+    },
+
+    // 27. Aire d'un rectangle
+    () => {
+        const L = Math.floor(Math.random()*15)+5;
+        const l = Math.floor(Math.random()*10)+3;
+        return {
+            text:`Calculer l'aire d'un rectangle de longueur ${L} m et largeur ${l} m (résultat sans unité)`,
+            type:'numeric', answer:L*l, tolerance:0.01,
+            explanation:`Aire = ${L} × ${l} = ${L*l} m²`
+        };
+    },
+
+    // 28. Aire d'un triangle
+    () => {
+        const b = Math.floor(Math.random()*12)+4;
+        const h = Math.floor(Math.random()*10)+3;
+        return {
+            text:`Calculer l'aire d'un triangle de base ${b} cm et hauteur ${h} cm (résultat sans unité)`,
+            type:'numeric', answer:(b*h)/2, tolerance:0.01,
+            explanation:`Aire = (${b} × ${h}) ÷ 2 = ${(b*h)/2} cm²`
+        };
+    },
+
+    // 29. Périmètre d'un cercle
+    () => {
+        const r = Math.floor(Math.random()*8)+2;
+        const answer = Math.round(2*Math.PI*r*100)/100;
+        return {
+            text:`Calculer le périmètre d'un cercle de rayon ${r} cm (arrondi au centième, utiliser π ≈ 3,14, résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.5,
+            explanation:`Périmètre = 2 × π × ${r} ≈ 2 × 3,14 × ${r} ≈ ${answer} cm`
+        };
+    },
+
+    // 30. Aire d'un disque
+    () => {
+        const r = Math.floor(Math.random()*6)+2;
+        const answer = Math.round(Math.PI*r*r*100)/100;
+        return {
+            text:`Calculer l'aire d'un disque de rayon ${r} cm (arrondi au centième, utiliser π ≈ 3,14, résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.5,
+            explanation:`Aire = π × ${r}² ≈ 3,14 × ${r*r} ≈ ${answer} cm²`
+        };
+    },
+
+    // 31. Volume d'un pavé droit
+    () => {
+        const L = Math.floor(Math.random()*8)+3;
+        const l = Math.floor(Math.random()*6)+2;
+        const h = Math.floor(Math.random()*5)+2;
+        return {
+            text:`Calculer le volume d'un pavé droit de dimensions ${L} cm × ${l} cm × ${h} cm (résultat sans unité)`,
+            type:'numeric', answer:L*l*h, tolerance:0.01,
+            explanation:`Volume = ${L} × ${l} × ${h} = ${L*l*h} cm³`
+        };
+    },
+
+    // 32. Théorème de Pythagore
+    () => {
+        const a = [3,6,8,5][Math.floor(Math.random()*4)];
+        const b = [4,8,6,12][Math.floor(Math.random()*4)];
+        const answer = Math.round(Math.sqrt(a*a+b*b)*100)/100;
+        return {
+            text:`Triangle rectangle : côtés ${a} cm et ${b} cm. Calculer l'hypoténuse (arrondi au centième, résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.1,
+            explanation:`Hypoténuse = √(${a}² + ${b}²) = √(${a*a} + ${b*b}) ≈ ${answer} cm`
+        };
+    },
+
+    // 33. Proportionnalité - Tableau
+    () => {
+        const a = Math.floor(Math.random()*5)+2;
+        const b = Math.floor(Math.random()*8)+3;
+        const x = Math.floor(Math.random()*6)+4;
+        const answer = (b*x)/a;
+        return {
+            text:`Si ${a} kg coûtent ${b} €, combien coûtent ${x} kg ? (résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.1,
+            explanation:`Prix pour ${x} kg = (${b} × ${x}) ÷ ${a} = ${answer} €`
+        };
+    },
+
+    // 34. Échelle
+    () => {
+        const echelle = [10000,20000,50000,100000][Math.floor(Math.random()*4)];
+        const dist    = [2,3,4,5][Math.floor(Math.random()*4)];
+        const answer  = (dist*echelle)/100;
+        return {
+            text:`Sur une carte à l'échelle 1/${echelle}, ${dist} cm représentent quelle distance réelle en mètres ? (résultat sans unité)`,
+            type:'numeric', answer, tolerance:1,
+            explanation:`Distance réelle = ${dist} × ${echelle} = ${dist*echelle} cm = ${answer} m`
+        };
+    },
+
+    // 35. Probabilité simple
+    () => {
+        const total = [6,8,10,12][Math.floor(Math.random()*4)];
+        const fav   = Math.floor(Math.random()*(total-2))+1;
+        const answer = Math.round((fav/total)*1000)/1000;
+        return {
+            text:`Il y a ${fav} boules rouges dans un sac de ${total} boules. Quelle est la probabilité de tirer une rouge ? (arrondi au millième, résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.01,
+            explanation:`Probabilité = ${fav}/${total} = ${answer}`
+        };
+    },
+
+    // 36. Notation scientifique
+    () => {
+        const base = [2.5,3.2,4.5,5.8,7.3][Math.floor(Math.random()*5)];
+        const exp  = Math.floor(Math.random()*5)+2;
+        const answer = base*Math.pow(10,exp);
+        return {
+            text:`Convertir ${base} × 10^${exp} en nombre décimal (résultat sans unité)`,
+            type:'numeric', answer, tolerance:1,
+            explanation:`${base} × 10^${exp} = ${answer}`
+        };
+    },
+
+    // 37. Suite arithmétique
+    () => {
+        const u0 = Math.floor(Math.random()*20)+5;
+        const r  = Math.floor(Math.random()*10)-5;
+        if (r === 0) return questionGenerators[37]();
+        return {
+            text:`Suite arithmétique : premier terme = ${u0}, raison = ${r}. Calculer le 2ème terme (résultat sans unité)`,
+            type:'numeric', answer:u0+r, tolerance:0.01,
+            explanation:`Terme suivant = ${u0} + ${r} = ${u0+r}`
+        };
+    },
+
+    // 38. Développement double
+    () => {
+        const a = Math.floor(Math.random()*4)+2;
+        const b = Math.floor(Math.random()*4)+2;
+        const answer = a*a+2*a*b+b*b;
+        return {
+            text:`Développer (${a} + ${b})² (résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.01,
+            explanation:`(${a} + ${b})² = ${a}² + 2×${a}×${b} + ${b}² = ${a*a} + ${2*a*b} + ${b*b} = ${answer}`
+        };
+    },
+
+    // 39. Médiane simple
+    () => {
+        const n = Math.random()<0.5?5:7;
+        const nums = Array.from({length:n}, ()=>Math.floor(Math.random()*20)+1);
+        nums.sort((a,b)=>a-b);
+        const answer = nums[Math.floor(n/2)];
+        return {
+            text:`Trouver la médiane de : ${nums.join(', ')} (résultat sans unité)`,
+            type:'numeric', answer, tolerance:0.01,
+            explanation:`Série ordonnée : ${nums.join(', ')}. La médiane est ${answer}`
+        };
+    }
+];
+
+/* ================================================================
+   GÉNÉRATION DES 15 QUESTIONS
+================================================================ */
+function generateQuestions() {
+    questions = [];
+    const pool = [...questionGenerators];
+    shuffle(pool);
+    for (const gen of pool) {
+        if (questions.length >= 15) break;
+        const q = gen();
+        if (!questions.some(e => e.text === q.text)) questions.push(q);
+    }
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+renderMissionsGrid();
+loadAllData();
+</script>
 </body>
 </html>
