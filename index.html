@@ -566,14 +566,14 @@ const TEAMS = {
 const MISSIONS = [
     { id:1,  icon:'⭐',       visual:'✓ ✓ ✓',      name:'3 bonnes réponses de suite',         g:'g-combo'   },
     { id:2,  icon:'⭐⭐',     visual:'✓×5',          name:'5 bonnes réponses de suite',         g:'g-combo'   },
-    { id:3,  icon:'⭐⭐⭐',   visual:'✓×10',         name:'10 bonnes réponses de suite',        g:'g-combo'   },
-    { id:4,  icon:'🏆',       visual:'15 / 15',      name:'Questionnaire parfait (15/15)',       g:'g-perfect' },
+    { id:3,  icon:'⭐⭐⭐',   visual:'✓×8',          name:'8 bonnes réponses de suite',         g:'g-combo'   },
+    { id:4,  icon:'🏆',       visual:'10 / 10',      name:'Questionnaire parfait (10/10)',       g:'g-perfect' },
     { id:5,  icon:'⚡',       visual:'3 × < 10 s',   name:'3 réponses rapides (<10 s)',         g:'g-speed'   },
     { id:6,  icon:'⚡⚡',     visual:'5 × < 10 s',   name:'5 réponses rapides (<10 s)',         g:'g-speed'   },
     { id:7,  icon:'🔥',       visual:'× 2,5',        name:'Combo multiplicateur ×2,5',          g:'g-mult'    },
-    { id:8,  icon:'🔥🔥',     visual:'× 5,0',        name:'Combo multiplicateur ×5,0',          g:'g-mult'    },
-    { id:9,  icon:'🎯',       visual:'0 ✗  / 10',    name:'Aucune erreur sur 10 questions',     g:'g-prec'    },
-    { id:10, icon:'🎯🎯',     visual:'0 ✗  / 15',    name:'Aucune erreur sur 15 questions',     g:'g-prec'    },
+    { id:8,  icon:'🔥🔥',     visual:'× 3,5',        name:'Combo multiplicateur ×3,5',          g:'g-mult'    },
+    { id:9,  icon:'🎯',       visual:'0 ✗ / 6',      name:'Sans erreur sur les 6 premières',    g:'g-prec'    },
+    { id:10, icon:'🎯🎯',     visual:'0 ✗ / 10',     name:'Sans erreur sur 10 questions',       g:'g-prec'    },
     { id:11, icon:'⚡⚡⚡',   visual:'10 q < 80 s',  name:'10 questions en moins de 80 s',      g:'g-speed'   },
     { id:12, icon:'🚀',       visual:'5 q < 30 s',   name:'5 questions en moins de 30 s',       g:'g-speed'   },
     { id:13, icon:'💰',       visual:'> 50 pts',     name:'Score supérieur à 50 points',        g:'g-score'   },
@@ -615,7 +615,7 @@ function resetStats(prevBest = 0, lastScore = 0) {
         currentQuick:0, maxQuick:0,
         maxMultiplier:1.0,
         correctAnswers:0, totalAnswered:0,
-        errorsFirst10:0,
+        errorsTotal:0, cleanFirst6:null,
         timeAt5q:9999, timeAt10q:9999,
         previousBest:prevBest,
         lastPlayerScore:lastScore
@@ -651,23 +651,27 @@ function getOrCreatePseudo(prenom) {
 }
 
 /* ================================================================
-   FIREBASE — CHARGEMENT
+   FIREBASE — LISTENERS TEMPS RÉEL
 ================================================================ */
-async function loadAllData() {
-    try {
-        const [tS,pS,mS,cS] = await Promise.all([
-            db.ref('equipes').once('value'),
-            db.ref('joueurs').once('value'),
-            db.ref('missions').once('value'),
-            db.ref('config').once('value')
-        ]);
-        fbTeams    = tS.val() || {};
-        fbPlayers  = pS.val() || {};
-        fbMissions = mS.val() || {};
-        stats.lastPlayerScore = (cS.val() || {}).lastScore || 0;
-        renderAllLeaderboards();
-        renderMissionsGrid();
-    } catch(e) { console.warn('Firebase load:', e); }
+function setupRealtimeListeners() {
+    db.ref('equipes').on('value', snap => {
+        fbTeams = snap.val() || {};
+        renderTeams();
+    }, err => console.warn('equipes:', err));
+
+    db.ref('joueurs').on('value', snap => {
+        fbPlayers = snap.val() || {};
+        renderPlayers();
+    }, err => console.warn('joueurs:', err));
+
+    db.ref('missions').on('value', snap => {
+        fbMissions = snap.val() || {};
+        renderMissionsLB();
+    }, err => console.warn('missions:', err));
+
+    db.ref('config').on('value', snap => {
+        stats.lastPlayerScore = (snap.val() || {}).lastScore || 0;
+    }, err => console.warn('config:', err));
 }
 
 async function loadPlayerData(pseudo) {
@@ -716,35 +720,35 @@ async function saveGameResult() {
 ================================================================ */
 function checkAllMissions() {
     const checks = [
-        ()=>stats.maxCombo>=3,
-        ()=>stats.maxCombo>=5,
-        ()=>stats.maxCombo>=10,
-        ()=>stats.correctAnswers===15&&stats.totalAnswered>=15,
-        ()=>stats.maxQuick>=3,
-        ()=>stats.maxQuick>=5,
-        ()=>stats.maxMultiplier>=2.5,
-        ()=>stats.maxMultiplier>=5.0,
-        ()=>stats.errorsFirst10===0&&stats.totalAnswered>=10,
-        ()=>stats.correctAnswers===15,
-        ()=>stats.timeAt10q<=80,
-        ()=>stats.timeAt5q<=30,
-        ()=>score>50,
-        ()=>score>80,
-        ()=>score>stats.previousBest&&stats.previousBest>0,
-        ()=>score>stats.lastPlayerScore&&stats.lastPlayerScore>0
+        ()=>stats.maxCombo>=3,                                                  // M1
+        ()=>stats.maxCombo>=5,                                                  // M2
+        ()=>stats.maxCombo>=8,                                                  // M3 (8 de suite sur 10)
+        ()=>stats.correctAnswers===10&&stats.totalAnswered>=10,                  // M4 (10/10 parfait)
+        ()=>stats.maxQuick>=3,                                                  // M5
+        ()=>stats.maxQuick>=5,                                                  // M6
+        ()=>stats.maxMultiplier>=2.5,                                           // M7
+        ()=>stats.maxMultiplier>=3.5,                                           // M8 (×3.5, max à combo 10)
+        ()=>stats.cleanFirst6===true,                                           // M9 (0 erreur sur 6 premières)
+        ()=>stats.errorsTotal===0&&stats.totalAnswered>=10,                     // M10 (0 erreur sur 10)
+        ()=>stats.timeAt10q<=80,                                                // M11
+        ()=>stats.timeAt5q<=30,                                                 // M12
+        ()=>score>50,                                                           // M13
+        ()=>score>80,                                                           // M14
+        ()=>score>stats.previousBest&&stats.previousBest>0,                    // M15
+        ()=>score>stats.lastPlayerScore&&stats.lastPlayerScore>0               // M16
     ];
     return checks.map((fn,i)=>fn()?i+1:null).filter(id=>id&&!playerMissions.includes(id));
 }
 
 function checkMissionsRealtime() {
     [
-        {id:1,fn:()=>stats.maxCombo>=3},
-        {id:2,fn:()=>stats.maxCombo>=5},
-        {id:3,fn:()=>stats.maxCombo>=10},
-        {id:5,fn:()=>stats.maxQuick>=3},
-        {id:6,fn:()=>stats.maxQuick>=5},
-        {id:7,fn:()=>stats.maxMultiplier>=2.5},
-        {id:8,fn:()=>stats.maxMultiplier>=5.0},
+        {id:1, fn:()=>stats.maxCombo>=3},
+        {id:2, fn:()=>stats.maxCombo>=5},
+        {id:3, fn:()=>stats.maxCombo>=8},
+        {id:5, fn:()=>stats.maxQuick>=3},
+        {id:6, fn:()=>stats.maxQuick>=5},
+        {id:7, fn:()=>stats.maxMultiplier>=2.5},
+        {id:8, fn:()=>stats.maxMultiplier>=3.5},
         {id:13,fn:()=>score>50}
     ].forEach(({id,fn})=>{
         if(fn()&&!playerMissions.includes(id)&&!notifiedThisGame.includes(id)){
@@ -763,8 +767,12 @@ function updateStatsOnAnswer(correct, timeTaken) {
         else stats.currentQuick=0;
         stats.maxMultiplier = Math.max(stats.maxMultiplier, getMultiplier(stats.currentCombo));
     } else {
-        if(stats.totalAnswered<=10) stats.errorsFirst10++;
+        stats.errorsTotal++;
         stats.currentCombo=0; stats.currentQuick=0;
+    }
+    // Snapshot "clean first 6" à la 6ème question
+    if(stats.totalAnswered===6 && stats.cleanFirst6===null){
+        stats.cleanFirst6 = stats.errorsTotal===0;
     }
     const elapsed = (Date.now()-gameStartTime)/1000;
     if(stats.totalAnswered===5)  stats.timeAt5q=elapsed;
@@ -973,7 +981,7 @@ function updateLiveTeams(){
 ================================================================ */
 function displayQuestion(){
     const q=questions[currentQuestion];
-    document.getElementById('q-counter').textContent=`Question ${currentQuestion+1}/15`;
+    document.getElementById('q-counter').textContent=`Question ${currentQuestion+1}/10`;
     document.getElementById('q-text').innerHTML=q.text;
 
     const cont=document.getElementById('q-container');
@@ -1041,7 +1049,7 @@ function nextQuestion(){
     updateComboDisplay(); updateLiveTeams();
 
     currentQuestion++;
-    if(currentQuestion>=15){ clearInterval(timerInterval); endGame(false); }
+    if(currentQuestion>=10){ clearInterval(timerInterval); endGame(false); }
     else displayQuestion();
 }
 
@@ -1051,7 +1059,6 @@ function nextQuestion(){
 async function endGame(timeout){
     clearInterval(timerInterval);
     const {newM,allM,newBest}=await saveGameResult();
-    await loadAllData();
     playerMissions=allM;
     showResults(newM,timeout);
 }
@@ -1061,7 +1068,7 @@ function showResults(newM,timeout){
     document.getElementById('res-title').textContent=timeout?'⏰ Temps écoulé !':'🏁 Résultats';
     document.getElementById('res-subtitle').textContent=`${playerPrenom} (${playerPseudo}) · ${team.icon} ${team.name}`;
     document.getElementById('rs-score').textContent=score;
-    document.getElementById('rs-correct').textContent=stats.correctAnswers+'/15';
+    document.getElementById('rs-correct').textContent=stats.correctAnswers+'/10';
     document.getElementById('rs-combo').textContent=stats.maxCombo;
     document.getElementById('rs-missions').textContent=newM.length>0?'+'+newM.length:'0';
 
@@ -1084,7 +1091,6 @@ function showResults(newM,timeout){
    RETOUR ACCUEIL — nom/équipe mémorisés (no re-saisie)
 ================================================================ */
 function goHome(){
-    loadAllData();
     showScreen('welcome-screen');
 
     if(sessionStarted && playerPseudo){
@@ -1312,7 +1318,7 @@ function generateQuestions(){
     questions=[];
     const pool=[...questionGenerators]; shuffle(pool);
     for(const gen of pool){
-        if(questions.length>=15) break;
+        if(questions.length>=10) break;
         const q=gen();
         if(!questions.some(e=>e.text===q.text)) questions.push(q);
     }
@@ -1322,7 +1328,7 @@ function generateQuestions(){
    INIT
 ================================================================ */
 renderMissionsGrid();
-loadAllData();
+setupRealtimeListeners();
 </script>
 </body>
 </html>
