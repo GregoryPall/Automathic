@@ -405,10 +405,6 @@ body {
 
             <input type="text" id="inp-prenom" class="name-input" placeholder="Ton prénom…" maxlength="20" autocomplete="off">
 
-            <div class="pseudo-row" id="pseudo-row">
-                <span style="color:var(--dim);font-size:.86em;">Ton pseudo apparaîtra ici…</span>
-            </div>
-
             <div class="panel-title">Choisis ton équipe</div>
             <div class="teams-grid">
                 <div class="team-card" data-t="electriques"   onclick="selectTeam('electriques')">
@@ -876,13 +872,8 @@ document.getElementById('inp-prenom').addEventListener('input', function(){
     if(val.length>=2){
         playerPseudo = getOrCreatePseudo(val);
         playerPrenom = val;
-        document.getElementById('pseudo-row').innerHTML =
-            `<span style="color:var(--dim);font-size:.8em">Ton pseudo :</span>
-             <span class="pseudo-tag">${playerPseudo}</span>`;
         loadPlayerData(playerPseudo);
     } else {
-        document.getElementById('pseudo-row').innerHTML =
-            '<span style="color:var(--dim);font-size:.86em">Ton pseudo apparaîtra ici…</span>';
         document.getElementById('personal-best').classList.remove('show');
         playerMissions=[]; renderMissionsGrid();
     }
@@ -1096,9 +1087,6 @@ function goHome(){
     if(sessionStarted && playerPseudo){
         /* Pré-remplir sans que le joueur ait à tout re-saisir */
         document.getElementById('inp-prenom').value = playerPrenom;
-        document.getElementById('pseudo-row').innerHTML =
-            `<span style="color:var(--dim);font-size:.8em">Ton pseudo :</span>
-             <span class="pseudo-tag">${playerPseudo}</span>`;
         if(playerTeam){
             document.querySelectorAll('.team-card').forEach(c=>c.classList.remove('selected'));
             document.querySelector(`.team-card[data-t="${playerTeam}"]`).classList.add('selected');
