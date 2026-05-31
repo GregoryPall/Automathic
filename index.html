@@ -61,10 +61,19 @@ body {
 }
 .welcome-header p { color:var(--dim); font-size:.75em; letter-spacing:4px; text-transform:uppercase; }
 
-/* 5-colonnes : setup | missions | équipes | joueurs | missions-LB */
+/* Bandeau missions (8×2) */
+.missions-banner {
+    max-width: 1380px; margin: 0 auto 14px; padding: 0 20px;
+}
+.missions-banner .panel-title { margin-bottom: 10px; }
+.missions-grid {
+    display: grid; grid-template-columns: repeat(8,1fr); gap: 6px;
+}
+
+/* 5-colonnes : setup | équipes | joueurs | missions-LB | parties */
 .welcome-layout {
     display: grid;
-    grid-template-columns: 230px 1fr 195px 195px 195px;
+    grid-template-columns: 225px 1fr 1fr 1fr 1fr;
     gap: 14px;
     max-width: 1380px;
     margin: 0 auto;
@@ -151,11 +160,11 @@ body {
     border:1.5px solid var(--border); border-radius:9px;
     background:var(--card); display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    padding:5px 3px 4px; position:relative; cursor:default;
-    opacity:.32; transition:opacity .2s, box-shadow .2s;
-    min-height:72px;
+    padding:6px 4px 5px; position:relative; cursor:default;
+    opacity:.28; transition:opacity .2s, box-shadow .2s;
+    min-height:80px;
 }
-.mission-vignette:hover { opacity:.6; }
+.mission-vignette:hover { opacity:.55; }
 .mission-vignette.done {
     opacity:1; box-shadow:0 2px 10px var(--shadow);
 }
@@ -178,13 +187,13 @@ body {
 .mission-vignette.g-prog    { border-color:#0070ee66; }
 
 .m-id { position:absolute; top:3px; left:5px; font-size:.5em; color:var(--dim); font-weight:700; }
-.m-icon { font-size:1.15em; line-height:1; }
+.m-icon { font-size:1.65em; line-height:1; }
 .m-visual {
-    font-size:.52em; font-weight:700; color:var(--dim);
-    margin-top:2px; text-align:center; line-height:1.2;
-    letter-spacing:-.3px;
+    font-size:.54em; font-weight:700; color:var(--dim);
+    margin-top:3px; text-align:center; line-height:1.2;
+    letter-spacing:-.2px;
 }
-.mission-vignette.done .m-visual { opacity:.8; }
+.mission-vignette.done .m-visual { opacity:.85; }
 
 /* tooltip */
 .mission-vignette::after {
@@ -374,12 +383,15 @@ body {
    RESPONSIVE
 ================================================================ */
 @media (max-width:1180px) {
-    .welcome-layout { grid-template-columns: 220px 1fr 180px 180px 180px; }
+    .welcome-layout { grid-template-columns: 210px 1fr 1fr 1fr 1fr; }
+    .missions-grid  { grid-template-columns: repeat(8,1fr); }
 }
 @media (max-width:900px) {
     .welcome-layout { grid-template-columns: 1fr 1fr; }
+    .missions-grid  { grid-template-columns: repeat(8,1fr); }
 }
 @media (max-width:620px) {
+    .missions-grid  { grid-template-columns: repeat(4,1fr); }
     .welcome-layout { grid-template-columns: 1fr; }
     .results-stats  { grid-template-columns: 1fr 1fr; }
     .options        { grid-template-columns: 1fr; }
@@ -395,6 +407,14 @@ body {
     <div class="welcome-header">
         <h1>⚙️ Automathic</h1>
         <p>Automatismes pour les BAC PRO</p>
+    </div>
+
+    <!-- BANDEAU MISSIONS (8×2) -->
+    <div class="missions-banner">
+        <div class="panel">
+            <div class="panel-title">🎯 16 Missions</div>
+            <div class="missions-grid" id="missions-grid"><!-- JS --></div>
+        </div>
     </div>
 
     <div class="welcome-layout">
@@ -436,28 +456,28 @@ body {
             </div>
         </div>
 
-        <!-- COL 2 : Missions -->
-        <div class="panel">
-            <div class="panel-title">🎯 16 Missions</div>
-            <div class="missions-grid" id="missions-grid"><!-- JS --></div>
-        </div>
-
-        <!-- COL 3 : Classement Équipes -->
+        <!-- COL 2 : Classement Équipes -->
         <div class="panel">
             <div class="lb-title">🏠 Équipes</div>
             <div id="lb-teams"><div class="lb-empty">Chargement…</div></div>
         </div>
 
-        <!-- COL 4 : Classement Joueurs -->
+        <!-- COL 3 : Classement Joueurs -->
         <div class="panel">
             <div class="lb-title">👤 Joueurs</div>
             <div id="lb-players"><div class="lb-empty">Chargement…</div></div>
         </div>
 
-        <!-- COL 5 : Classement Missions -->
+        <!-- COL 4 : Classement Missions -->
         <div class="panel">
             <div class="lb-title">🎯 Missions</div>
             <div id="lb-missions"><div class="lb-empty">Chargement…</div></div>
+        </div>
+
+        <!-- COL 5 : Classement Parties -->
+        <div class="panel">
+            <div class="lb-title">🎮 Parties</div>
+            <div id="lb-parties"><div class="lb-empty">Chargement…</div></div>
         </div>
 
     </div>
@@ -647,27 +667,30 @@ function getOrCreatePseudo(prenom) {
 }
 
 /* ================================================================
-   FIREBASE — LISTENERS TEMPS RÉEL
+   FIREBASE — LISTENERS + POLLING FALLBACK
 ================================================================ */
 function setupRealtimeListeners() {
-    db.ref('equipes').on('value', snap => {
-        fbTeams = snap.val() || {};
-        renderTeams();
-    }, err => console.warn('equipes:', err));
+    // Listeners temps réel
+    db.ref('equipes').on('value',  s => { fbTeams    = s.val()||{}; renderTeams();      }, ()=>{});
+    db.ref('joueurs').on('value',  s => { fbPlayers  = s.val()||{}; renderPlayers(); renderParties(); }, ()=>{});
+    db.ref('missions').on('value', s => { fbMissions = s.val()||{}; renderMissionsLB(); }, ()=>{});
+    db.ref('config').on('value',   s => { stats.lastPlayerScore=(s.val()||{}).lastScore||0; }, ()=>{});
 
-    db.ref('joueurs').on('value', snap => {
-        fbPlayers = snap.val() || {};
-        renderPlayers();
-    }, err => console.warn('joueurs:', err));
+    // Polling fallback toutes les 6 s (couvre les cas de règles Firebase restrictives)
+    setInterval(pollOnce, 6000);
+    pollOnce();
+}
 
-    db.ref('missions').on('value', snap => {
-        fbMissions = snap.val() || {};
-        renderMissionsLB();
-    }, err => console.warn('missions:', err));
-
-    db.ref('config').on('value', snap => {
-        stats.lastPlayerScore = (snap.val() || {}).lastScore || 0;
-    }, err => console.warn('config:', err));
+function pollOnce() {
+    const paths = ['equipes','joueurs','missions','config'];
+    paths.forEach(p => {
+        db.ref(p).once('value').then(s => {
+            if(p==='equipes')  { fbTeams    = s.val()||{}; renderTeams();      }
+            if(p==='joueurs')  { fbPlayers  = s.val()||{}; renderPlayers(); renderParties(); }
+            if(p==='missions') { fbMissions = s.val()||{}; renderMissionsLB(); }
+            if(p==='config')   { stats.lastPlayerScore=(s.val()||{}).lastScore||0; }
+        }).catch(()=>{});
+    });
 }
 
 async function loadPlayerData(pseudo) {
@@ -697,9 +720,11 @@ async function saveGameResult() {
     const allM  = [...new Set([...playerMissions, ...newM])];
     const newBest = score > stats.previousBest ? score : stats.previousBest;
     try {
+        const existing = (await db.ref('joueurs/'+playerPseudo).once('value')).val();
+        const parties  = (existing?.parties || 0) + 1;
         await db.ref('joueurs/'+playerPseudo).update({
             nom:playerPseudo, prenom:playerPrenom, equipe:playerTeam,
-            score, meilleurscore:newBest, missions:allM, ts:Date.now()
+            score, meilleurscore:newBest, missions:allM, parties, ts:Date.now()
         });
         await db.ref('missions/'+playerPseudo).set(allM);
         const curScore   = (fbTeams[playerTeam]?.score||0)+score;
@@ -799,7 +824,22 @@ function nextToast(){
 /* ================================================================
    UI — CLASSEMENTS (toujours visibles, pas de tabs)
 ================================================================ */
-function renderAllLeaderboards() { renderTeams(); renderPlayers(); renderMissionsLB(); }
+function renderAllLeaderboards() { renderTeams(); renderPlayers(); renderMissionsLB(); renderParties(); }
+
+function renderParties() {
+    const rows = Object.values(fbPlayers)
+        .map(p=>({prenom:p.prenom||p.nom, equipe:p.equipe, parties:p.parties||0}))
+        .sort((a,b)=>b.parties-a.parties).slice(0,12);
+    if(!rows.length){ document.getElementById('lb-parties').innerHTML='<div class="lb-empty">Aucune partie encore.</div>'; return; }
+    document.getElementById('lb-parties').innerHTML = rows.map((p,i)=>{
+        const ti=TEAMS[p.equipe]||{icon:'?'};
+        return `<div class="player-rank-row">
+            <div class="prr-pos ${i===0?'g':i===1?'s':i===2?'b':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+            <div class="prr-name">${ti.icon} ${p.prenom}</div>
+            <div class="prr-score">${p.parties}🎮</div>
+        </div>`;
+    }).join('');
+}
 
 function renderTeams() {
     const rows = Object.entries(TEAMS).map(([id,info])=>({
@@ -1051,6 +1091,8 @@ async function endGame(timeout){
     clearInterval(timerInterval);
     const {newM,allM,newBest}=await saveGameResult();
     playerMissions=allM;
+    renderMissionsGrid();   // missions à jour immédiatement
+    pollOnce();             // force refresh des classements
     showResults(newM,timeout);
 }
 
