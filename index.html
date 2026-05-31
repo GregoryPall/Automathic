@@ -61,11 +61,14 @@ body {
 }
 .welcome-header p { color:var(--dim); font-size:.75em; letter-spacing:4px; text-transform:uppercase; }
 
-/* Bandeau missions (8×2) */
+/* Bandeau missions (8×2) — sous les 5 colonnes, même largeur */
 .missions-banner {
-    max-width: 1380px; margin: 0 auto 14px; padding: 0 20px;
+    max-width: 1380px; margin: 14px auto 0;
 }
-.missions-banner .panel-title { margin-bottom: 10px; }
+.missions-banner .panel-title {
+    font-size:.9em; letter-spacing:2px; color:var(--text);
+    font-weight:700; margin-bottom:10px;
+}
 .missions-grid {
     display: grid; grid-template-columns: repeat(8,1fr); gap: 6px;
 }
@@ -209,8 +212,8 @@ body {
 
 /* ---- CLASSEMENTS (3 colonnes permanentes) ---- */
 .lb-title {
-    font-size:.65em; letter-spacing:3px; text-transform:uppercase;
-    color:var(--dim); margin-bottom:10px; padding-bottom:8px;
+    font-size:.9em; letter-spacing:2px; text-transform:uppercase;
+    color:var(--text); font-weight:700; margin-bottom:10px; padding-bottom:8px;
     border-bottom:1px solid var(--border);
 }
 
@@ -409,14 +412,6 @@ body {
         <p>Automatismes pour les BAC PRO</p>
     </div>
 
-    <!-- BANDEAU MISSIONS (8×2) -->
-    <div class="missions-banner">
-        <div class="panel">
-            <div class="panel-title">🎯 16 Missions</div>
-            <div class="missions-grid" id="missions-grid"><!-- JS --></div>
-        </div>
-    </div>
-
     <div class="welcome-layout">
 
         <!-- COL 1 : Setup joueur -->
@@ -481,6 +476,15 @@ body {
         </div>
 
     </div>
+
+    <!-- BANDEAU MISSIONS (8×2) — même largeur que les 5 colonnes -->
+    <div class="missions-banner">
+        <div class="panel">
+            <div class="panel-title">🎯 16 Missions</div>
+            <div class="missions-grid" id="missions-grid"><!-- JS --></div>
+        </div>
+    </div>
+
 </div>
 
 <!-- ================================================================
@@ -1159,6 +1163,8 @@ function showResults(newM,timeout){
 ================================================================ */
 function goHome(){
     showScreen('welcome-screen');
+    pollOnce();               // rafraîchit les classements immédiatement
+    renderAllLeaderboards();  // affiche ce qu'on a déjà en cache
 
     if(sessionStarted && playerPseudo){
         /* Pré-remplir sans que le joueur ait à tout re-saisir */
