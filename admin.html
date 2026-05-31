@@ -242,6 +242,36 @@ body {
 .save-feedback { font-size: .75em; color: #1a9e5c; font-weight: 700; opacity: 0; transition: opacity .3s; }
 .save-feedback.show { opacity: 1; }
 
+/* QUESTIONS DÉTAILLÉES */
+.questions-themes { display: flex; flex-direction: column; gap: 18px; }
+.q-theme-block { }
+.q-theme-header {
+    display: flex; align-items: center; gap: 9px;
+    font-size: .78em; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--border);
+}
+.q-theme-emoji { font-size: 1.2em; }
+.q-theme-count { margin-left: auto; font-size: .85em; color: var(--dim); font-weight: 400; letter-spacing: 0; }
+.q-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.q-item {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 13px;
+    display: flex; flex-direction: column; gap: 3px;
+}
+.q-item-header { display: flex; align-items: baseline; gap: 7px; }
+.q-num {
+    font-size: .6em; font-weight: 800; letter-spacing: 1px;
+    background: var(--border); border-radius: 3px; padding: 1px 5px;
+    color: var(--dim); flex-shrink: 0;
+}
+.q-desc { font-size: .82em; font-weight: 600; }
+.q-example {
+    font-size: .76em; color: var(--dim); font-style: italic;
+    padding-left: 2px;
+}
+.q-example strong { color: var(--hydro); font-style: normal; font-weight: 700; }
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
     .teams-grid { grid-template-columns: repeat(3,1fr); }
@@ -334,6 +364,12 @@ body {
             <div class="missions-stats-grid" id="missions-stats"><!-- JS --></div>
         </div>
 
+        <!-- QUESTIONS DISPONIBLES -->
+        <div class="section">
+            <div class="section-title">📚 Les 39 questions disponibles</div>
+            <div class="questions-themes" id="questions-detail"><!-- JS --></div>
+        </div>
+
     </div>
 </div>
 
@@ -419,6 +455,7 @@ function login() {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('admin-panel').style.display  = 'block';
         startListeners();
+        renderQuestionsDetail();
     } else {
         document.getElementById('login-error').textContent = '❌ Mot de passe incorrect';
         document.getElementById('pwd-input').value = '';
@@ -614,6 +651,168 @@ function renderMissionsStats() {
 /* ================================================================
    ACTIONS ADMIN
 ================================================================ */
+/* ================================================================
+   QUESTIONS DÉTAILLÉES
+================================================================ */
+const QUESTIONS_DETAIL = [
+    // ── Pourcentages ─────────────────────────────────────────────
+    { theme:'pourcentages', num:1,
+      desc:'Augmenter de x%',
+      ex:'Augmenter de 15% → <strong>× 1,15</strong>' },
+    { theme:'pourcentages', num:2,
+      desc:'Réduire de x%',
+      ex:'Réduire de 20% → <strong>× 0,80</strong>' },
+    { theme:'pourcentages', num:11,
+      desc:'Calculer x% d\'une quantité',
+      ex:'25% de 200 → <strong>50</strong>' },
+    { theme:'pourcentages', num:22,
+      desc:'Taux d\'évolution',
+      ex:'De 500 à 600 → taux = <strong>+20,00%</strong>' },
+    // ── Fractions ────────────────────────────────────────────────
+    { theme:'fractions', num:3,
+      desc:'Fraction d\'une quantité',
+      ex:'3/4 de 120 → <strong>90</strong>' },
+    // ── Calcul numérique ─────────────────────────────────────────
+    { theme:'calcul', num:5,
+      desc:'Multiplication par un décimal',
+      ex:'300 × 0,75 → <strong>225</strong>' },
+    { theme:'calcul', num:6,
+      desc:'Addition de relatifs',
+      ex:'7 + (−3) → <strong>4</strong>' },
+    { theme:'calcul', num:7,
+      desc:'Soustraction de relatifs',
+      ex:'5 − (−2) → <strong>7</strong>' },
+    { theme:'calcul', num:8,
+      desc:'Multiplication de relatifs',
+      ex:'(−4) × 3 → <strong>−12</strong>' },
+    { theme:'calcul', num:13,
+      desc:'Priorités opératoires',
+      ex:'5 + 3 × 4 + 2 → <strong>19</strong>' },
+    { theme:'calcul', num:14,
+      desc:'Puissances (exposant 2 ou 3)',
+      ex:'3² → <strong>9</strong> · 2³ → <strong>8</strong>' },
+    // ── Fonctions ────────────────────────────────────────────────
+    { theme:'fonctions', num:4,
+      desc:'Évaluer f(x) = ax + b',
+      ex:'f(x) = 3x + 2, f(4) → <strong>14</strong>' },
+    { theme:'fonctions', num:10,
+      desc:'Évaluer f(x) = ax² + bx + c',
+      ex:'f(x) = 2x² + 3x − 1, f(2) → <strong>13</strong>' },
+    { theme:'fonctions', num:18,
+      desc:'Appartenance d\'un point à une droite',
+      ex:'y = 2x + 1, A(3 ; 7) → <strong>Vrai</strong>' },
+    // ── Équations & Algèbre ──────────────────────────────────────
+    { theme:'equations', num:9,
+      desc:'Résoudre ax + b = c',
+      ex:'3x + 2 = 11 → x = <strong>3</strong>' },
+    { theme:'equations', num:12,
+      desc:'Développer a(bx + c)',
+      ex:'3(2x + 4) → <strong>6x + 12</strong>' },
+    { theme:'equations', num:25,
+      desc:'Factoriser ax + ab',
+      ex:'6x + 18 → <strong>6(x + 3)</strong>' },
+    { theme:'equations', num:38,
+      desc:'Développer (a + b)²',
+      ex:'(3 + 4)² = 9 + 24 + 16 → <strong>49</strong>' },
+    // ── Conversions ──────────────────────────────────────────────
+    { theme:'conversions', num:15,
+      desc:'Conversion de longueur (km/m/cm/mm)',
+      ex:'2,5 km → <strong>2 500 m</strong>' },
+    { theme:'conversions', num:16,
+      desc:'Conversion de durée (h/min/s)',
+      ex:'3 h → <strong>180 min</strong> · 90 min → <strong>1,5 h</strong>' },
+    // ── Statistiques ─────────────────────────────────────────────
+    { theme:'statistiques', num:17,
+      desc:'Moyenne arithmétique',
+      ex:'Moy(8 ; 12 ; 6) → <strong>8,67</strong>' },
+    { theme:'statistiques', num:19,
+      desc:'Arrondi au centième',
+      ex:'47,3562 → <strong>47,36</strong>' },
+    { theme:'statistiques', num:20,
+      desc:'Arrondi à l\'unité',
+      ex:'83,7 → <strong>84</strong>' },
+    { theme:'statistiques', num:39,
+      desc:'Médiane d\'une série',
+      ex:'2 ; 5 ; 7 ; 9 ; 12 → médiane = <strong>7</strong>' },
+    // ── Proportionnalité ─────────────────────────────────────────
+    { theme:'proportionnalite', num:21,
+      desc:'Calcul de prix unitaire',
+      ex:'5 articles = 75 € → 1 article = <strong>15 €</strong>' },
+    { theme:'proportionnalite', num:33,
+      desc:'Tableau de proportionnalité',
+      ex:'3 kg = 6 €, 9 kg → <strong>18 €</strong>' },
+    { theme:'proportionnalite', num:34,
+      desc:'Distances réelles à partir d\'une échelle',
+      ex:'1/50 000, 3 cm sur carte → <strong>1 500 m</strong>' },
+    // ── Vitesse & TVA ─────────────────────────────────────────────
+    { theme:'vitesse_tva', num:23,
+      desc:'Vitesse moyenne (d = v × t)',
+      ex:'150 km en 2 h → <strong>75 km/h</strong>' },
+    { theme:'vitesse_tva', num:24,
+      desc:'Calcul du prix TTC',
+      ex:'HT = 100 €, TVA 20% → TTC = <strong>120 €</strong>' },
+    // ── Géométrie ─────────────────────────────────────────────────
+    { theme:'geometrie', num:26,
+      desc:'Périmètre d\'un rectangle',
+      ex:'8 cm × 5 cm → P = <strong>26 cm</strong>' },
+    { theme:'geometrie', num:27,
+      desc:'Aire d\'un rectangle',
+      ex:'8 m × 5 m → A = <strong>40 m²</strong>' },
+    { theme:'geometrie', num:28,
+      desc:'Aire d\'un triangle',
+      ex:'Base 10 cm, h 6 cm → A = <strong>30 cm²</strong>' },
+    { theme:'geometrie', num:29,
+      desc:'Périmètre d\'un cercle',
+      ex:'r = 5 cm → P ≈ <strong>31,42 cm</strong>' },
+    { theme:'geometrie', num:30,
+      desc:'Aire d\'un disque',
+      ex:'r = 4 cm → A ≈ <strong>50,27 cm²</strong>' },
+    { theme:'geometrie', num:31,
+      desc:'Volume d\'un pavé droit',
+      ex:'4 × 3 × 2 cm → V = <strong>24 cm³</strong>' },
+    { theme:'geometrie', num:32,
+      desc:'Hypoténuse (Pythagore)',
+      ex:'Côtés 3 et 4 cm → hyp. = <strong>5 cm</strong>' },
+    // ── Probabilités ──────────────────────────────────────────────
+    { theme:'probabilites', num:35,
+      desc:'Probabilité d\'un événement simple',
+      ex:'3 boules rouges / 10 → P = <strong>0,300</strong>' },
+    // ── Notation scientifique ─────────────────────────────────────
+    { theme:'notation_sci', num:36,
+      desc:'Notation scientifique → nombre décimal',
+      ex:'3,2 × 10³ → <strong>3 200</strong>' },
+    // ── Suites ────────────────────────────────────────────────────
+    { theme:'suites', num:37,
+      desc:'Suite arithmétique — 2ème terme',
+      ex:'u₀ = 5, raison = 3 → u₁ = <strong>8</strong>' }
+];
+
+function renderQuestionsDetail() {
+    const container = document.getElementById('questions-detail');
+    if (!container) return;
+    container.innerHTML = QUESTION_THEMES.map(theme => {
+        const qs = QUESTIONS_DETAIL.filter(q => q.theme === theme.id);
+        return `
+        <div class="q-theme-block">
+            <div class="q-theme-header">
+                <span class="q-theme-emoji">${theme.emoji}</span>
+                <span>${theme.label}</span>
+                <span class="q-theme-count">${qs.length} question${qs.length>1?'s':''}</span>
+            </div>
+            <div class="q-list">
+                ${qs.map(q => `
+                <div class="q-item">
+                    <div class="q-item-header">
+                        <span class="q-num">Q${q.num}</span>
+                        <span class="q-desc">${q.desc}</span>
+                    </div>
+                    <div class="q-example">ex : ${q.ex}</div>
+                </div>`).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
 async function deletePlayer(pseudo, prenom, equipe, score) {
     if (!confirm(`Supprimer ${prenom} (${pseudo}) et retirer ${score} pts à ${TEAMS[equipe]?.short||equipe} ?`)) return;
     try {
