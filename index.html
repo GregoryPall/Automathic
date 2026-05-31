@@ -598,6 +598,31 @@ const MISSIONS = [
     { id:16, icon:'🏅',       visual:'⚔ duel',       name:'Meilleur score que le joueur préc.', g:'g-prog'    }
 ];
 
+/* Thèmes de questions — indices dans questionGenerators[] (0-based) */
+const QUESTION_THEMES = [
+    { id:'pourcentages',     label:'Pourcentages',          emoji:'📊', indices:[0,1,10,21] },
+    { id:'fractions',        label:'Fractions',             emoji:'½',  indices:[2] },
+    { id:'calcul',           label:'Calcul numérique',      emoji:'🔢', indices:[4,5,6,7,12,13] },
+    { id:'fonctions',        label:'Fonctions',             emoji:'📈', indices:[3,9,17] },
+    { id:'equations',        label:'Équations & Algèbre',   emoji:'✏️', indices:[8,11,24,37] },
+    { id:'conversions',      label:'Conversions',           emoji:'⇄',  indices:[14,15] },
+    { id:'statistiques',     label:'Statistiques',          emoji:'📉', indices:[16,18,19,38] },
+    { id:'proportionnalite', label:'Proportionnalité',      emoji:'⚖️', indices:[20,32,33] },
+    { id:'vitesse_tva',      label:'Vitesse & TVA',         emoji:'🚗', indices:[22,23] },
+    { id:'geometrie',        label:'Géométrie',             emoji:'📐', indices:[25,26,27,28,29,30,31] },
+    { id:'probabilites',     label:'Probabilités',          emoji:'🎲', indices:[34] },
+    { id:'notation_sci',     label:'Notation scientifique', emoji:'🔬', indices:[35] },
+    { id:'suites',           label:'Suites arithmétiques',  emoji:'∞',  indices:[36] }
+];
+
+function getEnabledIndices() {
+    const idx = [];
+    QUESTION_THEMES.forEach(t => {
+        if (enabledThemes[t.id] !== false) idx.push(...t.indices);
+    });
+    return idx.length ? idx : questionGenerators.map((_,i)=>i); // fallback tout
+}
+
 function getMultiplier(combo) {
     if (combo >= 13) return 5.0;
     if (combo >= 10) return 3.5;
@@ -643,6 +668,7 @@ let fbTeams    = {};
 let fbPlayers  = {};
 let fbMissions = {};
 let playerMissions = [];
+let enabledThemes  = {};  // config/themes depuis Firebase — {} = tout activé
 
 let notifiedThisGame = [];
 let toastQueue = [];
@@ -674,9 +700,13 @@ function setupRealtimeListeners() {
     db.ref('equipes').on('value',  s => { fbTeams    = s.val()||{}; renderTeams();      }, ()=>{});
     db.ref('joueurs').on('value',  s => { fbPlayers  = s.val()||{}; renderPlayers(); renderParties(); }, ()=>{});
     db.ref('missions').on('value', s => { fbMissions = s.val()||{}; renderMissionsLB(); }, ()=>{});
-    db.ref('config').on('value',   s => { stats.lastPlayerScore=(s.val()||{}).lastScore||0; }, ()=>{});
+    db.ref('config').on('value', s => {
+        const cfg = s.val() || {};
+        stats.lastPlayerScore = cfg.lastScore || 0;
+        enabledThemes = cfg.themes || {};
+    }, ()=>{});
 
-    // Polling fallback toutes les 6 s (couvre les cas de règles Firebase restrictives)
+    // Polling fallback toutes les 6 s
     setInterval(pollOnce, 6000);
     pollOnce();
 }
@@ -688,7 +718,11 @@ function pollOnce() {
             if(p==='equipes')  { fbTeams    = s.val()||{}; renderTeams();      }
             if(p==='joueurs')  { fbPlayers  = s.val()||{}; renderPlayers(); renderParties(); }
             if(p==='missions') { fbMissions = s.val()||{}; renderMissionsLB(); }
-            if(p==='config')   { stats.lastPlayerScore=(s.val()||{}).lastScore||0; }
+            if(p==='config')   {
+                const cfg = s.val()||{};
+                stats.lastPlayerScore = cfg.lastScore||0;
+                enabledThemes = cfg.themes||{};
+            }
         }).catch(()=>{});
     });
 }
@@ -1346,11 +1380,22 @@ const questionGenerators = [
 
 function generateQuestions(){
     questions=[];
-    const pool=[...questionGenerators]; shuffle(pool);
+    const enabled = getEnabledIndices();
+    const pool = questionGenerators.filter((_,i) => enabled.includes(i));
+    shuffle(pool);
     for(const gen of pool){
         if(questions.length>=10) break;
         const q=gen();
         if(!questions.some(e=>e.text===q.text)) questions.push(q);
+    }
+    // Fallback si pas assez de questions
+    if(questions.length < 10) {
+        const extra = [...questionGenerators]; shuffle(extra);
+        for(const gen of extra){
+            if(questions.length>=10) break;
+            const q=gen();
+            if(!questions.some(e=>e.text===q.text)) questions.push(q);
+        }
     }
 }
 

@@ -205,6 +205,43 @@ body {
 .ms-name { flex: 1; font-size: .78em; color: var(--dim); }
 .ms-count { font-weight: 700; color: var(--gold); flex-shrink: 0; }
 
+/* AUTOMATISMES CHECKBOXES */
+.themes-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+}
+.theme-toggle {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; cursor: pointer;
+    transition: all .18s; user-select: none;
+}
+.theme-toggle:hover { border-color: var(--hydro); background: rgba(0,112,238,.04); }
+.theme-toggle.disabled { opacity: .5; }
+.theme-toggle input[type="checkbox"] {
+    width: 16px; height: 16px; cursor: pointer; accent-color: var(--hydro);
+    flex-shrink: 0;
+}
+.theme-emoji { font-size: 1.1em; flex-shrink: 0; }
+.theme-label { font-size: .84em; font-weight: 600; flex: 1; }
+.theme-count { font-size: .72em; color: var(--dim); flex-shrink: 0; }
+.themes-actions { display: flex; gap: 8px; margin-top: 14px; }
+.btn-secondary {
+    padding: 8px 16px; border: 1.5px solid var(--border); border-radius: 7px;
+    background: var(--card); color: var(--text); font-size: .78em; font-weight: 700;
+    cursor: pointer; transition: all .2s;
+}
+.btn-secondary:hover { border-color: var(--hydro); color: var(--hydro); }
+.btn-save {
+    padding: 8px 18px; border: none; border-radius: 7px;
+    background: linear-gradient(135deg, var(--hydro), var(--elec2));
+    color: #fff; font-size: .78em; font-weight: 700;
+    cursor: pointer; transition: all .2s; box-shadow: 0 2px 10px rgba(0,112,238,.25);
+}
+.btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,112,238,.35); }
+.save-feedback { font-size: .75em; color: #1a9e5c; font-weight: 700; opacity: 0; transition: opacity .3s; }
+.save-feedback.show { opacity: 1; }
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
     .teams-grid { grid-template-columns: repeat(3,1fr); }
@@ -277,6 +314,20 @@ body {
             <div id="players-container"><div class="empty-msg">Chargement…</div></div>
         </div>
 
+        <!-- AUTOMATISMES -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️ Automatismes dans les questions</span>
+                <span class="save-feedback" id="save-feedback">✅ Sauvegardé</span>
+            </div>
+            <div class="themes-grid" id="themes-grid"><!-- JS --></div>
+            <div class="themes-actions">
+                <button class="btn-secondary" onclick="selectAllThemes()">✅ Tout cocher</button>
+                <button class="btn-secondary" onclick="deselectAllThemes()">☐ Tout décocher</button>
+                <button class="btn-save"      onclick="saveThemes()">💾 Enregistrer</button>
+            </div>
+        </div>
+
         <!-- MISSIONS -->
         <div class="section">
             <div class="section-title">🎯 Statistiques des missions</div>
@@ -334,13 +385,30 @@ const MISSIONS = [
     {id:16, icon:'🏅',     name:'Battre le joueur précédent'}
 ];
 
+const QUESTION_THEMES = [
+    { id:'pourcentages',     label:'Pourcentages',          emoji:'📊', count:4 },
+    { id:'fractions',        label:'Fractions',             emoji:'½',  count:1 },
+    { id:'calcul',           label:'Calcul numérique',      emoji:'🔢', count:6 },
+    { id:'fonctions',        label:'Fonctions',             emoji:'📈', count:3 },
+    { id:'equations',        label:'Équations & Algèbre',   emoji:'✏️', count:4 },
+    { id:'conversions',      label:'Conversions',           emoji:'⇄',  count:2 },
+    { id:'statistiques',     label:'Statistiques',          emoji:'📉', count:4 },
+    { id:'proportionnalite', label:'Proportionnalité',      emoji:'⚖️', count:3 },
+    { id:'vitesse_tva',      label:'Vitesse & TVA',         emoji:'🚗', count:2 },
+    { id:'geometrie',        label:'Géométrie',             emoji:'📐', count:7 },
+    { id:'probabilites',     label:'Probabilités',          emoji:'🎲', count:1 },
+    { id:'notation_sci',     label:'Notation scientifique', emoji:'🔬', count:1 },
+    { id:'suites',           label:'Suites arithmétiques',  emoji:'∞',  count:1 }
+];
+
 /* ================================================================
    ÉTAT
 ================================================================ */
-let fbTeams    = {};
-let fbPlayers  = {};
-let fbMissions = {};
-let listeners  = [];
+let fbTeams      = {};
+let fbPlayers    = {};
+let fbMissions   = {};
+let enabledThemes = {};
+let listeners    = [];
 
 /* ================================================================
    AUTH
@@ -368,20 +436,34 @@ function logout() {
 }
 
 /* ================================================================
-   LISTENERS TEMPS RÉEL
+   LISTENERS + POLLING FALLBACK
 ================================================================ */
 function startListeners() {
-    const refs = ['equipes','joueurs','missions'];
-    refs.forEach(path => {
+    // Listeners temps réel
+    ['equipes','joueurs','missions','config'].forEach(path => {
         const ref = db.ref(path);
         const fn  = ref.on('value', snap => {
-            if(path==='equipes')  { fbTeams    = snap.val() || {}; }
-            if(path==='joueurs')  { fbPlayers  = snap.val() || {}; }
-            if(path==='missions') { fbMissions = snap.val() || {}; }
-            renderAll();
-        }, err => console.warn(path, err));
+            applySnap(path, snap); renderAll();
+        }, ()=>{});
         listeners.push(() => ref.off('value', fn));
     });
+    // Polling fallback toutes les 6 s
+    const timer = setInterval(pollAdminOnce, 6000);
+    listeners.push(() => clearInterval(timer));
+    pollAdminOnce();
+}
+
+function pollAdminOnce() {
+    ['equipes','joueurs','missions','config'].forEach(path => {
+        db.ref(path).once('value').then(s => { applySnap(path,s); renderAll(); }).catch(()=>{});
+    });
+}
+
+function applySnap(path, snap) {
+    if(path==='equipes')  fbTeams        = snap.val() || {};
+    if(path==='joueurs')  fbPlayers      = snap.val() || {};
+    if(path==='missions') fbMissions     = snap.val() || {};
+    if(path==='config')   { enabledThemes = (snap.val()||{}).themes || {}; renderThemesGrid(); }
 }
 
 /* ================================================================
@@ -394,14 +476,54 @@ function renderAll() {
     renderMissionsStats();
 }
 
+/* ---- AUTOMATISMES ---- */
+function renderThemesGrid() {
+    document.getElementById('themes-grid').innerHTML = QUESTION_THEMES.map(t => {
+        const checked = enabledThemes[t.id] !== false; // défaut true
+        return `
+        <label class="theme-toggle ${checked?'':'disabled'}">
+            <input type="checkbox" id="theme-${t.id}" ${checked?'checked':''}
+                   onchange="toggleTheme('${t.id}', this.checked)">
+            <span class="theme-emoji">${t.emoji}</span>
+            <span class="theme-label">${t.label}</span>
+            <span class="theme-count">${t.count}q</span>
+        </label>`;
+    }).join('');
+}
+
+function toggleTheme(id, checked) {
+    enabledThemes[id] = checked;
+    const label = document.querySelector(`#theme-${id}`)?.closest('.theme-toggle');
+    if(label) label.classList.toggle('disabled', !checked);
+}
+
+function selectAllThemes() {
+    QUESTION_THEMES.forEach(t => { enabledThemes[t.id] = true; });
+    renderThemesGrid();
+}
+
+function deselectAllThemes() {
+    QUESTION_THEMES.forEach(t => { enabledThemes[t.id] = false; });
+    renderThemesGrid();
+}
+
+async function saveThemes() {
+    try {
+        await db.ref('config/themes').set(enabledThemes);
+        const fb = document.getElementById('save-feedback');
+        fb.classList.add('show');
+        setTimeout(() => fb.classList.remove('show'), 2500);
+    } catch(e) { alert('Erreur : ' + e.message); }
+}
+
 function renderStats() {
     const players = Object.values(fbPlayers);
     const allMissions = Object.values(fbMissions).flat();
     const bestScore = players.length ? Math.max(...players.map(p => p.meilleurscore||0)) : 0;
-    const totalParties = players.reduce((s,p) => s + (p.score !== undefined ? 1 : 0), 0);
+    const totalParties = players.reduce((s,p) => s + (p.parties||0), 0);
 
     document.getElementById('st-players').textContent  = players.length;
-    document.getElementById('st-parties').textContent  = players.length; // 1 entrée = au moins 1 partie
+    document.getElementById('st-parties').textContent  = totalParties;
     document.getElementById('st-best').textContent     = bestScore;
     document.getElementById('st-missions').textContent = allMissions.length;
 }
