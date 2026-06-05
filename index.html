@@ -97,15 +97,43 @@ body {
 }
 
 /* ---- LEFT : setup joueur ---- */
-.name-input {
-    width:100%; background:var(--card);
-    border:1.5px solid var(--border); border-radius:8px;
-    color:var(--text); font-size:14px; padding:10px 13px;
-    outline:none; margin-bottom:9px;
-    transition:border-color .2s, box-shadow .2s;
+/* Roulette widget */
+.roulette-widget { margin-bottom:9px; }
+.roulette-slots {
+    display:flex; align-items:stretch; gap:6px; margin-bottom:8px;
 }
-.name-input:focus { border-color:var(--hydro); box-shadow:0 0 0 3px rgba(0,112,238,.1); }
-.name-input::placeholder { color:var(--dim); }
+.roulette-slot {
+    flex:1; background:var(--card); border:1.5px solid var(--border);
+    border-radius:8px; padding:10px 8px; text-align:center;
+    overflow:hidden; min-height:52px; display:flex; align-items:center; justify-content:center;
+    transition:border-color .2s;
+}
+.roulette-slot.spinning { border-color:var(--gold); }
+.roulette-slot.done     { border-color:var(--hydro); }
+.slot-val {
+    font-size:.82em; font-weight:700; color:var(--gold);
+    transition:opacity .08s, transform .08s;
+    line-height:1.2; word-break:break-word;
+}
+.slot-val.flip { opacity:0; transform:translateY(-6px); }
+.roulette-sep {
+    display:flex; align-items:center; font-size:1.1em;
+    color:var(--dim); font-weight:700; padding:0 2px; flex-shrink:0;
+}
+.btn-spin {
+    width:100%; padding:10px; border:none; border-radius:8px;
+    font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+    cursor:pointer; transition:all .2s;
+    background:linear-gradient(135deg,var(--gold),#b07020);
+    color:#fff; box-shadow:0 4px 14px rgba(212,146,10,.35);
+    margin-bottom:4px;
+}
+.btn-spin:disabled { opacity:.35; cursor:not-allowed; box-shadow:none; }
+.btn-spin:not(:disabled):hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(212,146,10,.5); }
+.roulette-hint {
+    font-size:.65em; color:var(--dim); text-align:center; margin-bottom:6px;
+    letter-spacing:.5px;
+}
 
 .pseudo-row {
     background:var(--card); border:1.5px solid var(--border);
@@ -418,7 +446,21 @@ body {
         <div class="panel">
             <div class="panel-title">Rejoindre une équipe</div>
 
-            <input type="text" id="inp-prenom" class="name-input" placeholder="Ton prénom…" maxlength="20" autocomplete="off">
+            <div class="roulette-widget">
+                <div class="roulette-slots">
+                    <div class="roulette-slot" id="slot-perso">
+                        <span class="slot-val" id="disp-perso">?</span>
+                    </div>
+                    <div class="roulette-sep">+</div>
+                    <div class="roulette-slot" id="slot-situ">
+                        <span class="slot-val" id="disp-situ">?</span>
+                    </div>
+                </div>
+                <button class="btn-spin" id="btn-spin" onclick="spinRoulette()">🎲 Lance ta roulette !</button>
+                <div class="roulette-hint" id="roulette-hint">Ton nom de joueur s'affichera ici</div>
+            </div>
+            <!-- champ caché pour compatibilité avec le reste du code -->
+            <input type="hidden" id="inp-prenom" value="">
 
             <div class="panel-title">Choisis ton équipe</div>
             <div class="teams-grid">
@@ -943,21 +985,114 @@ function renderMissionsGrid() {
 }
 
 /* ================================================================
+   ROULETTE — LISTES
+================================================================ */
+const PERSONNAGES = [
+    'Superman','Batman','Spider-Man','Iron Man','Captain America',
+    'Thor','Hulk','Wonder Woman','Black Panther','Doctor Strange',
+    'Elsa','Simba','Woody','Buzz l\'Éclair','Nemo',
+    'Wall-E','Stitch','Mowgli','Shrek','Donkey Kong',
+    'Bugs Bunny','Tom le Chat','Jerry la Souris','Scooby-Doo','Bart Simpson',
+    'Bob l\'Éponge','Patrick Étoile','Mario','Luigi','Link',
+    'Pikachu','Sonic','Kirby','Lara Croft','Pac-Man',
+    'Napoléon','Cléopâtre','Einstein','Sherlock Holmes','James Bond',
+    'Indiana Jones','Tarzan','Dracula','Frankenstein','Zorro',
+    'Naruto','Goku','Tintin','Astérix','Obélix',
+    'Lucky Luke','Dark Vador','Luke Skywalker','Yoda','Jack Sparrow',
+    'Harry Potter','Hermione Granger','Gandalf','Frodon','Bilbo',
+    'Dumbledore','Peter Pan','Pinocchio','Aladin','Cendrillon',
+    'Robin des Bois','Don Quichotte','Rambo','Rocky','Terminator',
+    'MacGyver','Hercule','Achille','Ulysse','Chuck Norris',
+    'Jeanne d\'Arc','Jules César','Cléopâtre','Spirou','Tinker Bell',
+    'Capitaine Crochet','Mulan','Pocahontas','Bambi','Dumbo'
+];
+
+const SITUATIONS = [
+    'au ski','à la plage','en forêt','dans l\'espace','sous l\'eau',
+    'au pôle Nord','dans un château','sur la Lune','dans la jungle','au désert',
+    'en train de cuisiner','au supermarché','en pyjama','au dentiste','en discothèque',
+    'au cinéma','à une fête d\'anniversaire','en randonnée','au musée','au karaoké',
+    'coincé dans un ascenseur','perdu en IKEA','à un mariage','sur une île déserte','lors d\'un examen',
+    'en pleine réunion Zoom','dans un labyrinthe','lors d\'une panne d\'électricité','au Far West','en safari',
+    'à Paris','à New York','en Antarctique','en Égypte','à Tokyo',
+    'à Rome','à la montagne','au volcan','en plein orage','sous la pluie',
+    'en vélo','en surf','en parachute','en escalade','à la boxe',
+    'en football','en natation','en tennis','en skate','à cheval',
+    'avec un robot','avec un fantôme','avec un dragon','avec un alien','avec un vampire',
+    'en colonie de vacances','en classe','en récréation','à la cantine','au tableau',
+    'un lundi matin','un vendredi soir','la veille de Noël','le jour de son anniversaire','en pleine nuit',
+    'en slip','en costume de super-héros','déguisé en pingouin','en armure de chevalier','en combinaison spatiale',
+    'sans téléphone','sans internet','sans café','sans électricité','sans gravité',
+    'au sommet de l\'Everest','au fond de l\'océan','dans un sous-marin','à bord d\'un vaisseau','dans les égouts',
+    'lors d\'un tremblement de terre','lors d\'une éruption volcanique','pendant un tsunami','au milieu d\'un ouragan','dans une tempête de neige'
+];
+
+/* ================================================================
+   ROULETTE — LOGIQUE
+================================================================ */
+let rouletteSpinning = false;
+
+function spinRoulette() {
+    if (rouletteSpinning) return;
+    rouletteSpinning = true;
+
+    const btnSpin  = document.getElementById('btn-spin');
+    const dispP    = document.getElementById('disp-perso');
+    const dispS    = document.getElementById('disp-situ');
+    const slotP    = document.getElementById('slot-perso');
+    const slotS    = document.getElementById('slot-situ');
+    const hint     = document.getElementById('roulette-hint');
+
+    btnSpin.disabled = true;
+    slotP.className = 'roulette-slot spinning';
+    slotS.className = 'roulette-slot spinning';
+    hint.textContent = '…';
+
+    const finalP = PERSONNAGES[Math.floor(Math.random() * PERSONNAGES.length)];
+    const finalS = SITUATIONS[Math.floor(Math.random() * SITUATIONS.length)];
+
+    // Schedule: rapid then slowing down
+    const delays = [50,50,60,60,80,80,100,120,150,180,220,270,330,400,500];
+    let step = 0;
+
+    function tick() {
+        if (step < delays.length - 1) {
+            flipSlot(dispP, PERSONNAGES[Math.floor(Math.random()*PERSONNAGES.length)]);
+            flipSlot(dispS, SITUATIONS[Math.floor(Math.random()*SITUATIONS.length)]);
+            setTimeout(tick, delays[step++]);
+        } else {
+            // Final values
+            flipSlot(dispP, finalP, true);
+            flipSlot(dispS, finalS, true);
+            slotP.className = 'roulette-slot done';
+            slotS.className = 'roulette-slot done';
+            const name = finalP + ' ' + finalS;
+            hint.textContent = '✅ ' + name;
+            document.getElementById('inp-prenom').value = name;
+            playerPrenom = name;
+            playerPseudo = getOrCreatePseudo(name);
+            loadPlayerData(playerPseudo);
+            checkStart();
+            btnSpin.textContent = '🔄 Relancer';
+            btnSpin.disabled = false;
+            rouletteSpinning = false;
+        }
+    }
+    tick();
+}
+
+function flipSlot(el, text, final=false) {
+    el.classList.add('flip');
+    setTimeout(() => {
+        el.textContent = text;
+        el.classList.remove('flip');
+        if (final) el.style.color = 'var(--hydro)';
+    }, 80);
+}
+
+/* ================================================================
    SETUP JOUEUR
 ================================================================ */
-document.getElementById('inp-prenom').addEventListener('input', function(){
-    const val = this.value.trim();
-    if(val.length>=2){
-        playerPseudo = getOrCreatePseudo(val);
-        playerPrenom = val;
-        loadPlayerData(playerPseudo);
-    } else {
-        document.getElementById('personal-best').classList.remove('show');
-        playerMissions=[]; renderMissionsGrid();
-    }
-    checkStart();
-});
-
 function selectTeam(id){
     document.querySelectorAll('.team-card').forEach(c=>c.classList.remove('selected'));
     document.querySelector(`.team-card[data-t="${id}"]`).classList.add('selected');
@@ -1167,8 +1302,24 @@ function goHome(){
     renderAllLeaderboards();  // affiche ce qu'on a déjà en cache
 
     if(sessionStarted && playerPseudo){
-        /* Pré-remplir sans que le joueur ait à tout re-saisir */
+        /* Restaurer le nom généré dans le widget roulette */
         document.getElementById('inp-prenom').value = playerPrenom;
+        if(playerPrenom){
+            const parts = playerPrenom.split(' ');
+            const situ  = parts.slice(1).join(' ');
+            const perso = parts[0];
+            const dp = document.getElementById('disp-perso');
+            const ds = document.getElementById('disp-situ');
+            if(dp){ dp.textContent = perso; dp.style.color='var(--hydro)'; }
+            if(ds){ ds.textContent = situ||''; ds.style.color='var(--hydro)'; }
+            document.getElementById('slot-perso')?.classList.replace('roulette-slot','roulette-slot');
+            document.getElementById('slot-perso')?.classList.add('done');
+            document.getElementById('slot-situ')?.classList.add('done');
+            const hint = document.getElementById('roulette-hint');
+            if(hint) hint.textContent = '✅ ' + playerPrenom;
+            const btnSpin = document.getElementById('btn-spin');
+            if(btnSpin) btnSpin.textContent = '🔄 Relancer';
+        }
         if(playerTeam){
             document.querySelectorAll('.team-card').forEach(c=>c.classList.remove('selected'));
             document.querySelector(`.team-card[data-t="${playerTeam}"]`).classList.add('selected');
