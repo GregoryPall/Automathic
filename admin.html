@@ -114,6 +114,45 @@ body {
     display: flex; align-items: center; justify-content: space-between;
 }
 
+/* CLASSEMENT PROJECTION (4 colonnes en haut) */
+.lb-proj-grid {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
+}
+.lb-proj-panel {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 16px;
+    box-shadow: 0 2px 12px var(--shadow);
+}
+.lb-proj-title {
+    font-size: 1.1em; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text); font-weight: 800; margin-bottom: 12px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+}
+.team-rank-row {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 10px; border-radius:8px; margin-bottom:6px;
+    border:1px solid var(--border); background:var(--card);
+}
+.trr-icon { font-size:1.4em; flex-shrink:0; }
+.trr-info { flex:1; min-width:0; }
+.trr-name { font-size:1em; font-weight:700; }
+.trr-players { font-size:.75em; color:var(--dim); }
+.trr-right { text-align:right; flex-shrink:0; }
+.trr-score { font-size:1.15em; font-weight:800; color:var(--gold); }
+.trr-pos { font-size:.8em; color:var(--dim); }
+.player-rank-row {
+    display:flex; align-items:center; gap:8px;
+    padding:8px 10px; border-radius:6px; margin-bottom:4px;
+    background:var(--card); border:1px solid var(--border);
+}
+.prr-pos { font-weight:700; width:26px; text-align:center; flex-shrink:0; font-size:1.05em; }
+.prr-pos.g { color:#c8900a; }
+.prr-pos.s { color:#888; }
+.prr-pos.b { color:#b07020; }
+.prr-name { flex:1; font-weight:600; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:1em; }
+.prr-score { font-weight:700; color:var(--gold); flex-shrink:0; font-size:1em; }
+.lb-empty { color:var(--dim); font-size:.85em; padding:12px 0; text-align:center; }
+
 /* STATS */
 .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
 .stat-box {
@@ -315,24 +354,27 @@ body {
 
     <div class="admin-body">
 
-        <!-- STATS GLOBALES -->
+        <!-- CLASSEMENTS PROJECTION -->
         <div class="section">
-            <div class="section-title">📊 Vue d'ensemble</div>
-            <div class="stats-grid">
-                <div class="stat-box"><div class="stat-val" id="st-players">—</div><div class="stat-lbl">Joueurs</div></div>
-                <div class="stat-box"><div class="stat-val" id="st-parties">—</div><div class="stat-lbl">Parties jouées</div></div>
-                <div class="stat-box"><div class="stat-val" id="st-best">—</div><div class="stat-lbl">Meilleur score</div></div>
-                <div class="stat-box"><div class="stat-val" id="st-missions">—</div><div class="stat-lbl">Missions débloquées</div></div>
+            <div class="section-title">📽️ Classements</div>
+            <div class="lb-proj-grid">
+                <div class="lb-proj-panel">
+                    <div class="lb-proj-title">🏠 Équipes</div>
+                    <div id="lb-teams"><div class="lb-empty">Chargement…</div></div>
+                </div>
+                <div class="lb-proj-panel">
+                    <div class="lb-proj-title">👤 Joueurs</div>
+                    <div id="lb-players"><div class="lb-empty">Chargement…</div></div>
+                </div>
+                <div class="lb-proj-panel">
+                    <div class="lb-proj-title">🎯 Missions</div>
+                    <div id="lb-missions"><div class="lb-empty">Chargement…</div></div>
+                </div>
+                <div class="lb-proj-panel">
+                    <div class="lb-proj-title">🎮 Parties</div>
+                    <div id="lb-parties"><div class="lb-empty">Chargement…</div></div>
+                </div>
             </div>
-        </div>
-
-        <!-- SCORES ÉQUIPES -->
-        <div class="section">
-            <div class="section-title">
-                <span>🏆 Scores des équipes</span>
-                <button class="btn-danger" onclick="resetTeams()">🔄 Remettre à zéro</button>
-            </div>
-            <div class="teams-grid" id="teams-grid"><!-- JS --></div>
         </div>
 
         <!-- JOUEURS -->
@@ -508,6 +550,10 @@ function applySnap(path, snap) {
 ================================================================ */
 function renderAll() {
     renderStats();
+    renderLBTeams();
+    renderLBPlayers();
+    renderLBMissions();
+    renderLBParties();
     renderTeams();
     renderPlayers();
     renderMissionsStats();
@@ -554,15 +600,72 @@ async function saveThemes() {
 }
 
 function renderStats() {
-    const players = Object.values(fbPlayers);
-    const allMissions = Object.values(fbMissions).flat();
-    const bestScore = players.length ? Math.max(...players.map(p => p.meilleurscore||0)) : 0;
-    const totalParties = players.reduce((s,p) => s + (p.parties||0), 0);
+    // kept for compatibility (ids may no longer exist but no error)
+}
 
-    document.getElementById('st-players').textContent  = players.length;
-    document.getElementById('st-parties').textContent  = totalParties;
-    document.getElementById('st-best').textContent     = bestScore;
-    document.getElementById('st-missions').textContent = allMissions.length;
+function renderLBTeams() {
+    const rows = Object.entries(TEAMS).map(([id,info]) => ({
+        id, ...info, score: fbTeams[id]?.score||0, players: (fbTeams[id]?.joueurs||[]).length
+    })).sort((a,b) => b.score - a.score);
+    document.getElementById('lb-teams').innerHTML = rows.map((t,i) => `
+        <div class="team-rank-row" style="border-color:${t.color}55;background:${t.color}0d">
+            <div class="trr-icon">${t.icon}</div>
+            <div class="trr-info">
+                <div class="trr-name" style="color:${t.color}">${t.short}</div>
+                <div class="trr-players">${t.players} joueur(s)</div>
+            </div>
+            <div class="trr-right">
+                <div class="trr-score">${t.score}</div>
+                <div class="trr-pos">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
+            </div>
+        </div>`).join('') || '<div class="lb-empty">Aucune équipe encore.</div>';
+}
+
+function renderLBPlayers() {
+    const rows = Object.values(fbPlayers)
+        .map(p => ({prenom:p.prenom||p.nom, equipe:p.equipe, best:p.meilleurscore||0}))
+        .sort((a,b) => b.best - a.best).slice(0,12);
+    if (!rows.length) { document.getElementById('lb-players').innerHTML='<div class="lb-empty">Aucun joueur encore.</div>'; return; }
+    document.getElementById('lb-players').innerHTML = rows.map((p,i) => {
+        const ti = TEAMS[p.equipe]||{icon:'?'};
+        return `<div class="player-rank-row">
+            <div class="prr-pos ${i===0?'g':i===1?'s':i===2?'b':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+            <div class="prr-name">${ti.icon} ${p.prenom}</div>
+            <div class="prr-score">${p.best}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderLBMissions() {
+    const rows = Object.entries(fbMissions)
+        .map(([pseudo,ms]) => ({
+            prenom: fbPlayers[pseudo]?.prenom||pseudo,
+            equipe: fbPlayers[pseudo]?.equipe||'', count: (ms||[]).length
+        })).sort((a,b) => b.count - a.count).slice(0,12);
+    if (!rows.length) { document.getElementById('lb-missions').innerHTML='<div class="lb-empty">Aucune mission accomplie.</div>'; return; }
+    document.getElementById('lb-missions').innerHTML = rows.map((p,i) => {
+        const ti = TEAMS[p.equipe]||{icon:'?'};
+        return `<div class="player-rank-row">
+            <div class="prr-pos ${i===0?'g':i===1?'s':i===2?'b':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+            <div class="prr-name">${ti.icon} ${p.prenom}</div>
+            <div class="prr-score">${p.count}/16</div>
+        </div>`;
+    }).join('');
+}
+
+function renderLBParties() {
+    const rows = Object.values(fbPlayers)
+        .map(p => ({prenom:p.prenom||p.nom, equipe:p.equipe, parties:p.parties||0}))
+        .sort((a,b) => b.parties - a.parties).slice(0,12);
+    if (!rows.length) { document.getElementById('lb-parties').innerHTML='<div class="lb-empty">Aucune partie encore.</div>'; return; }
+    document.getElementById('lb-parties').innerHTML = rows.map((p,i) => {
+        const ti = TEAMS[p.equipe]||{icon:'?'};
+        return `<div class="player-rank-row">
+            <div class="prr-pos ${i===0?'g':i===1?'s':i===2?'b':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+            <div class="prr-name">${ti.icon} ${p.prenom}</div>
+            <div class="prr-score">${p.parties}🎮</div>
+        </div>`;
+    }).join('');
 }
 
 function renderTeams() {
@@ -572,7 +675,8 @@ function renderTeams() {
         players: (fbTeams[id]?.joueurs || []).length
     })).sort((a,b) => b.score - a.score);
 
-    document.getElementById('teams-grid').innerHTML = sorted.map((t,i) => `
+    const tg = document.getElementById('teams-grid'); if(!tg) return;
+    tg.innerHTML = sorted.map((t,i) => `
         <div class="team-admin-card" style="border-color:${t.color}55;background:${t.color}0d">
             <div class="tac-icon">${t.icon}</div>
             <div class="tac-name" style="color:${t.color}">${t.short}</div>
